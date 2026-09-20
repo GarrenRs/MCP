@@ -1,0 +1,22 @@
+{
+  "errors": {
+    "invalid_id": "Invalid ID",
+    "not_found": "Not found",
+    "validation": "The submitted values are invalid",
+    "invalid_json": "The request body is not valid JSON",
+    "no_fields": "No fields were provided",
+    "invalid_body": "The request body must be an object",
+    "period_required": "A period (YYYY-MM) is required",
+    "charge_not_found": "Charge not found"
+  },
+  "settings": {
+    "title": "Settings",
+    "locale": "Language",
+    "currency": "Currency"
+  },
+  "common": {
+    "cancel": "Cancel",
+    "save": "Save changes",
+    "undeclared": "Undeclared"
+  }
+}

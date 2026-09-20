@@ -1,0 +1,21 @@
+{
+  "errors": {
+    "invalid_id": "معرّف غير صالح",
+    "not_found": "غير موجود",
+    "validation": "القيم المرسلة غير صالحة",
+    "invalid_json": "نص الطلب ليس JSON صالحاً",
+    "no_fields": "لم يتم توفير أي حقول",
+    "invalid_body": "يجب أن يكون نص الطلب كائناً",
+    "period_required": "الفترة (YYYY-MM) مطلوبة",
+    "charge_not_found": "الرسم غير موجود"
+  },
+  "settings": {
+    "title": "الإعدادات",
+    "locale": "اللغة",
+    "currency": "العملة"
+  },
+  "common": {
+    "cancel": "إلغاء",
+    "save": "حفظ التغييرات"
+  }
+}

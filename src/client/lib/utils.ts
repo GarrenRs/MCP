@@ -1,8 +1,15 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { getLocale, isSupportedLocale } from "../i18n";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
+}
+
+/** Resolve an explicit locale (validated) or fall back to the active one. */
+function localeOrActive(locale?: string): string | undefined {
+  if (locale && isSupportedLocale(locale)) return locale;
+  return getLocale();
 }
 
 /**
@@ -29,17 +36,40 @@ export function colorClasses(token: string | null | undefined): typeof colorPale
 }
 
 /** Format an ISO date string 'YYYY-MM-DD' or full datetime to a short date label. */
-export function formatDate(iso: string | null | undefined, opts?: Intl.DateTimeFormatOptions): string {
+export function formatDate(iso: string | null | undefined, locale?: string, opts?: Intl.DateTimeFormatOptions): string {
   if (!iso) return "";
   const d = new Date(iso.length <= 10 ? `${iso}T00:00:00` : iso);
   if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString(undefined, opts ?? { year: "numeric", month: "short", day: "numeric" });
+  return d.toLocaleDateString(localeOrActive(locale), opts ?? { year: "numeric", month: "short", day: "numeric" });
 }
 
-/** Format a number as currency. Uses USD by default. */
-export function formatMoney(n: number | null | undefined, currency = "USD"): string {
+/**
+ * Format a number as currency. Uses the supplied currency (validated) or USD
+ * by default. Invalid/malformed currency codes never throw — they fall back to
+ * a locale-aware plain number so a bad setting cannot crash a render.
+ */
+export function formatMoney(n: number | null | undefined, currency?: string, locale?: string): string {
   if (n === null || n === undefined || Number.isNaN(n)) return "—";
-  return new Intl.NumberFormat(undefined, { style: "currency", currency, maximumFractionDigits: 0 }).format(n);
+  const code = currency?.trim().toUpperCase() || "USD";
+  const loc = localeOrActive(locale);
+  // Malformed codes throw a RangeError at construction of the formatter, so
+  // build it defensively and fall back to a plain locale-aware number.
+  const tryFormat = (fmt?: Intl.NumberFormat): string => {
+    if (fmt) {
+      try {
+        return fmt.format(n);
+      } catch {
+        /* fall through */
+      }
+    }
+    return new Intl.NumberFormat(loc, { maximumFractionDigits: 0 }).format(n);
+  };
+  try {
+    const money = new Intl.NumberFormat(loc, { style: "currency", currency: code, maximumFractionDigits: 0 });
+    return tryFormat(money);
+  } catch {
+    return tryFormat();
+  }
 }
 
 /** YYYY-MM-DD for a given Date in local time. */
@@ -63,10 +93,10 @@ export function addMonths(period: string, delta: number): string {
 }
 
 /** Pretty 'April 2026' for 'YYYY-MM'. */
-export function formatPeriod(period: string): string {
+export function formatPeriod(period: string, locale?: string): string {
   const [y, m] = period.split("-").map(Number);
   const d = new Date(y, m - 1, 1);
-  return d.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+  return d.toLocaleDateString(localeOrActive(locale), { month: "long", year: "numeric" });
 }
 
 /** Days between two ISO dates (positive = b after a). */

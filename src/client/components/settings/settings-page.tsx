@@ -20,6 +20,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import type { Vendor, VendorCategory } from "@/types";
 import { PageShell } from "@/components/page-shell";
+import { t } from "@/i18n";
 
 const COLORS = ["sky", "emerald", "amber", "rose", "violet", "fuchsia", "teal", "orange", "slate"];
 
@@ -257,6 +258,7 @@ function PolicyTab() {
   const [lateFee, setLateFee] = useState(String(app.settings.late_fee_amount));
   const [grace, setGrace] = useState(String(app.settings.late_fee_grace_days));
   const [currency, setCurrency] = useState(app.settings.currency);
+  const [locale, setLocale] = useState(app.settings.locale);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -264,6 +266,7 @@ function PolicyTab() {
     setLateFee(String(app.settings.late_fee_amount));
     setGrace(String(app.settings.late_fee_grace_days));
     setCurrency(app.settings.currency);
+    setLocale(app.settings.locale);
   }, [app.settings]);
 
   async function save() {
@@ -274,6 +277,7 @@ function PolicyTab() {
         late_fee_amount: parseFloat(lateFee) || 0,
         late_fee_grace_days: Math.max(0, parseInt(grace, 10) || 0),
         currency: currency.trim().toUpperCase() || "USD",
+        locale,
       });
     } catch (err) {
       app.setError((err as Error).message);
@@ -304,6 +308,18 @@ function PolicyTab() {
         <div>
           <Label htmlFor="s-cur">Currency</Label>
           <Input id="s-cur" value={currency} onChange={(e) => setCurrency(e.target.value)} placeholder="USD" />
+        </div>
+      </div>
+      <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-4">
+        <div>
+          <Label htmlFor="s-locale">{t("settings.locale")}</Label>
+          <Select value={locale} onValueChange={setLocale}>
+            <SelectTrigger id="s-locale"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="en">English</SelectItem>
+              <SelectItem value="ar">العربية</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
       <div className="mt-4">

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { api } from "../api";
+import { setLocale } from "../i18n";
 import type {
   Property,
   Unit,
@@ -21,6 +22,7 @@ export interface AppSettings {
   late_fee_amount: number;
   late_fee_grace_days: number;
   currency: string;
+  locale: string;
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -28,6 +30,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   late_fee_amount: 50,
   late_fee_grace_days: 5,
   currency: "USD",
+  locale: "en",
 };
 
 function parseSettings(raw: Record<string, string>): AppSettings {
@@ -40,6 +43,7 @@ function parseSettings(raw: Record<string, string>): AppSettings {
     late_fee_amount: num("late_fee_amount", DEFAULT_SETTINGS.late_fee_amount),
     late_fee_grace_days: num("late_fee_grace_days", DEFAULT_SETTINGS.late_fee_grace_days),
     currency: raw.currency || DEFAULT_SETTINGS.currency,
+    locale: raw.locale || DEFAULT_SETTINGS.locale,
   };
 }
 
@@ -85,6 +89,13 @@ export function useAppState() {
       }
     })();
   }, [refreshLookups]);
+
+  // Activate the product locale for i18n + the document language whenever the
+  // setting (or its default) is known. Unknown values fall back to "en".
+  useEffect(() => {
+    setLocale(settings.locale);
+    document.documentElement.lang = settings.locale || "en";
+  }, [settings.locale]);
 
   // Property mutations ─────────────────────────────────────────────
 

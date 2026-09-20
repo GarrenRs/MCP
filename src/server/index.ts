@@ -1,6 +1,7 @@
 import { Hono, type Context } from "hono";
 import { z } from "zod";
 import { initDB, query, get, run } from "./db";
+import { ErrorCode, err } from "./errors";
 import {
   computeChargeStatus,
   currentUtcDate,
@@ -29,6 +30,7 @@ const DEFAULT_SETTINGS: Record<string, string> = {
   late_fee_amount: "50",
   late_fee_grace_days: "5",
   currency: "USD",
+  locale: "en",
 };
 
 const DEMO_PROPERTIES: Array<[string, string, string, string, string, string, string]> = [
@@ -106,15 +108,15 @@ const intParam = (raw: string | undefined): number | null => {
   return Number.isFinite(n) ? n : null;
 };
 
-async function parseJson<T>(c: Context, schema: z.ZodType<T>): Promise<{ ok: true; data: T } | { ok: false; error: string }> {
+async function parseJson<T>(c: Context, schema: z.ZodType<T>): Promise<{ ok: true; data: T } | { ok: false; code: string; error: string }> {
   let body: unknown;
   try {
     body = await c.req.json();
   } catch {
-    return { ok: false, error: "Invalid JSON" };
+    return { ok: false, code: ErrorCode.invalid_json, error: "Invalid JSON" };
   }
   const parsed = schema.safeParse(body);
-  if (!parsed.success) return { ok: false, error: parsed.error.issues.map(i => `${i.path.join(".")}: ${i.message}`).join("; ") };
+  if (!parsed.success) return { ok: false, code: ErrorCode.validation, error: parsed.error.issues.map(i => `${i.path.join(".")}: ${i.message}`).join("; ") };
   return { ok: true, data: parsed.data };
 }
 
@@ -153,15 +155,15 @@ app.get("/api/properties", async (c) => {
 
 app.get("/api/properties/:id", async (c) => {
   const id = intParam(c.req.param("id"));
-  if (!id) return c.json({ error: "Invalid ID" }, 400);
+  if (!id) return c.json(err(ErrorCode.invalid_id, "Invalid ID"), 400);
   const row = await get("SELECT * FROM properties WHERE id = ?", [id]);
-  if (!row) return c.json({ error: "Not found" }, 404);
+  if (!row) return c.json(err(ErrorCode.not_found, "Not found"), 404);
   return c.json({ property: row });
 });
 
 app.post("/api/properties", async (c) => {
   const parsed = await parseJson(c, PropertyInput);
-  if (!parsed.ok) return c.json({ error: parsed.error }, 400);
+  if (!parsed.ok) return c.json(err(parsed.code, parsed.error), 400);
   const d = parsed.data;
   const result = await run(
     `INSERT INTO properties (name, type, address, city, state, zip, year_built, notes, color)
@@ -174,23 +176,23 @@ app.post("/api/properties", async (c) => {
 
 app.put("/api/properties/:id", async (c) => {
   const id = intParam(c.req.param("id"));
-  if (!id) return c.json({ error: "Invalid ID" }, 400);
+  if (!id) return c.json(err(ErrorCode.invalid_id, "Invalid ID"), 400);
   const parsed = await parseJson(c, PropertyInput.partial());
-  if (!parsed.ok) return c.json({ error: parsed.error }, 400);
+  if (!parsed.ok) return c.json(err(parsed.code, parsed.error), 400);
   const { sets, params } = buildUpdate(parsed.data);
-  if (!sets.length) return c.json({ error: "No fields" }, 400);
+  if (!sets.length) return c.json(err(ErrorCode.no_fields, "No fields"), 400);
   params.push(id);
   const r = await run(`UPDATE properties SET ${sets.join(", ")} WHERE id = ?`, params);
-  if (!r.changes) return c.json({ error: "Not found" }, 404);
+  if (!r.changes) return c.json(err(ErrorCode.not_found, "Not found"), 404);
   const row = await get("SELECT * FROM properties WHERE id = ?", [id]);
   return c.json({ property: row });
 });
 
 app.delete("/api/properties/:id", async (c) => {
   const id = intParam(c.req.param("id"));
-  if (!id) return c.json({ error: "Invalid ID" }, 400);
+  if (!id) return c.json(err(ErrorCode.invalid_id, "Invalid ID"), 400);
   const r = await run("DELETE FROM properties WHERE id = ?", [id]);
-  if (!r.changes) return c.json({ error: "Not found" }, 404);
+  if (!r.changes) return c.json(err(ErrorCode.not_found, "Not found"), 404);
   return c.json({ ok: true });
 });
 
@@ -233,15 +235,15 @@ app.get("/api/units", async (c) => {
 
 app.get("/api/units/:id", async (c) => {
   const id = intParam(c.req.param("id"));
-  if (!id) return c.json({ error: "Invalid ID" }, 400);
+  if (!id) return c.json(err(ErrorCode.invalid_id, "Invalid ID"), 400);
   const row = await get(`${UNIT_SELECT} WHERE u.id = ?`, [id]);
-  if (!row) return c.json({ error: "Not found" }, 404);
+  if (!row) return c.json(err(ErrorCode.not_found, "Not found"), 404);
   return c.json({ unit: row });
 });
 
 app.post("/api/units", async (c) => {
   const parsed = await parseJson(c, UnitInput);
-  if (!parsed.ok) return c.json({ error: parsed.error }, 400);
+  if (!parsed.ok) return c.json(err(parsed.code, parsed.error), 400);
   const d = parsed.data;
   const result = await run(
     `INSERT INTO units (property_id, name, bedrooms, bathrooms, sqft, market_rent, status, notes)
@@ -254,23 +256,23 @@ app.post("/api/units", async (c) => {
 
 app.put("/api/units/:id", async (c) => {
   const id = intParam(c.req.param("id"));
-  if (!id) return c.json({ error: "Invalid ID" }, 400);
+  if (!id) return c.json(err(ErrorCode.invalid_id, "Invalid ID"), 400);
   const parsed = await parseJson(c, UnitInput.partial());
-  if (!parsed.ok) return c.json({ error: parsed.error }, 400);
+  if (!parsed.ok) return c.json(err(parsed.code, parsed.error), 400);
   const { sets, params } = buildUpdate(parsed.data);
-  if (!sets.length) return c.json({ error: "No fields" }, 400);
+  if (!sets.length) return c.json(err(ErrorCode.no_fields, "No fields"), 400);
   params.push(id);
   const r = await run(`UPDATE units SET ${sets.join(", ")} WHERE id = ?`, params);
-  if (!r.changes) return c.json({ error: "Not found" }, 404);
+  if (!r.changes) return c.json(err(ErrorCode.not_found, "Not found"), 404);
   const row = await get(`${UNIT_SELECT} WHERE u.id = ?`, [id]);
   return c.json({ unit: row });
 });
 
 app.delete("/api/units/:id", async (c) => {
   const id = intParam(c.req.param("id"));
-  if (!id) return c.json({ error: "Invalid ID" }, 400);
+  if (!id) return c.json(err(ErrorCode.invalid_id, "Invalid ID"), 400);
   const r = await run("DELETE FROM units WHERE id = ?", [id]);
-  if (!r.changes) return c.json({ error: "Not found" }, 404);
+  if (!r.changes) return c.json(err(ErrorCode.not_found, "Not found"), 404);
   return c.json({ ok: true });
 });
 
@@ -322,15 +324,15 @@ app.get("/api/tenants", async (c) => {
 
 app.get("/api/tenants/:id", async (c) => {
   const id = intParam(c.req.param("id"));
-  if (!id) return c.json({ error: "Invalid ID" }, 400);
+  if (!id) return c.json(err(ErrorCode.invalid_id, "Invalid ID"), 400);
   const row = await get("SELECT * FROM tenants WHERE id = ?", [id]);
-  if (!row) return c.json({ error: "Not found" }, 404);
+  if (!row) return c.json(err(ErrorCode.not_found, "Not found"), 404);
   return c.json({ tenant: row });
 });
 
 app.post("/api/tenants", async (c) => {
   const parsed = await parseJson(c, TenantInput);
-  if (!parsed.ok) return c.json({ error: parsed.error }, 400);
+  if (!parsed.ok) return c.json(err(parsed.code, parsed.error), 400);
   const d = parsed.data;
   const result = await run(
     `INSERT INTO tenants (first_name, last_name, email, phone, date_of_birth, emergency_contact, employer, monthly_income, notes)
@@ -343,23 +345,23 @@ app.post("/api/tenants", async (c) => {
 
 app.put("/api/tenants/:id", async (c) => {
   const id = intParam(c.req.param("id"));
-  if (!id) return c.json({ error: "Invalid ID" }, 400);
+  if (!id) return c.json(err(ErrorCode.invalid_id, "Invalid ID"), 400);
   const parsed = await parseJson(c, TenantInput.partial());
-  if (!parsed.ok) return c.json({ error: parsed.error }, 400);
+  if (!parsed.ok) return c.json(err(parsed.code, parsed.error), 400);
   const { sets, params } = buildUpdate(parsed.data);
-  if (!sets.length) return c.json({ error: "No fields" }, 400);
+  if (!sets.length) return c.json(err(ErrorCode.no_fields, "No fields"), 400);
   params.push(id);
   const r = await run(`UPDATE tenants SET ${sets.join(", ")} WHERE id = ?`, params);
-  if (!r.changes) return c.json({ error: "Not found" }, 404);
+  if (!r.changes) return c.json(err(ErrorCode.not_found, "Not found"), 404);
   const row = await get("SELECT * FROM tenants WHERE id = ?", [id]);
   return c.json({ tenant: row });
 });
 
 app.delete("/api/tenants/:id", async (c) => {
   const id = intParam(c.req.param("id"));
-  if (!id) return c.json({ error: "Invalid ID" }, 400);
+  if (!id) return c.json(err(ErrorCode.invalid_id, "Invalid ID"), 400);
   const r = await run("DELETE FROM tenants WHERE id = ?", [id]);
-  if (!r.changes) return c.json({ error: "Not found" }, 404);
+  if (!r.changes) return c.json(err(ErrorCode.not_found, "Not found"), 404);
   return c.json({ ok: true });
 });
 
@@ -406,15 +408,15 @@ app.get("/api/leases", async (c) => {
 
 app.get("/api/leases/:id", async (c) => {
   const id = intParam(c.req.param("id"));
-  if (!id) return c.json({ error: "Invalid ID" }, 400);
+  if (!id) return c.json(err(ErrorCode.invalid_id, "Invalid ID"), 400);
   const row = await get(`${LEASE_SELECT} WHERE l.id = ?`, [id]);
-  if (!row) return c.json({ error: "Not found" }, 404);
+  if (!row) return c.json(err(ErrorCode.not_found, "Not found"), 404);
   return c.json({ lease: row });
 });
 
 app.post("/api/leases", async (c) => {
   const parsed = await parseJson(c, LeaseInput);
-  if (!parsed.ok) return c.json({ error: parsed.error }, 400);
+  if (!parsed.ok) return c.json(err(parsed.code, parsed.error), 400);
   const d = parsed.data;
   const result = await run(
     `INSERT INTO leases (unit_id, primary_tenant_id, start_date, end_date, monthly_rent, deposit, rent_due_day, late_fee, status, notes)
@@ -431,23 +433,23 @@ app.post("/api/leases", async (c) => {
 
 app.put("/api/leases/:id", async (c) => {
   const id = intParam(c.req.param("id"));
-  if (!id) return c.json({ error: "Invalid ID" }, 400);
+  if (!id) return c.json(err(ErrorCode.invalid_id, "Invalid ID"), 400);
   const parsed = await parseJson(c, LeaseInput.partial());
-  if (!parsed.ok) return c.json({ error: parsed.error }, 400);
+  if (!parsed.ok) return c.json(err(parsed.code, parsed.error), 400);
   const { sets, params } = buildUpdate(parsed.data);
-  if (!sets.length) return c.json({ error: "No fields" }, 400);
+  if (!sets.length) return c.json(err(ErrorCode.no_fields, "No fields"), 400);
   params.push(id);
   const r = await run(`UPDATE leases SET ${sets.join(", ")} WHERE id = ?`, params);
-  if (!r.changes) return c.json({ error: "Not found" }, 404);
+  if (!r.changes) return c.json(err(ErrorCode.not_found, "Not found"), 404);
   const row = await get(`${LEASE_SELECT} WHERE l.id = ?`, [id]);
   return c.json({ lease: row });
 });
 
 app.delete("/api/leases/:id", async (c) => {
   const id = intParam(c.req.param("id"));
-  if (!id) return c.json({ error: "Invalid ID" }, 400);
+  if (!id) return c.json(err(ErrorCode.invalid_id, "Invalid ID"), 400);
   const r = await run("DELETE FROM leases WHERE id = ?", [id]);
-  if (!r.changes) return c.json({ error: "Not found" }, 404);
+  if (!r.changes) return c.json(err(ErrorCode.not_found, "Not found"), 404);
   return c.json({ ok: true });
 });
 
@@ -488,7 +490,7 @@ app.get("/api/rent-charges", async (c) => {
 
 app.post("/api/rent-charges", async (c) => {
   const parsed = await parseJson(c, ChargeInput);
-  if (!parsed.ok) return c.json({ error: parsed.error }, 400);
+  if (!parsed.ok) return c.json(err(parsed.code, parsed.error), 400);
   const d = parsed.data;
   const result = await run(
     `INSERT INTO rent_charges (lease_id, period, due_date, amount, notes) VALUES (?, ?, ?, ?, ?)
@@ -507,7 +509,7 @@ app.post("/api/rent-charges", async (c) => {
 app.post("/api/rent-charges/generate", async (c) => {
   const body = await c.req.json().catch(() => ({})) as { period?: string };
   const period = body.period;
-  if (!period || !/^\d{4}-\d{2}$/.test(period)) return c.json({ error: "period (YYYY-MM) required" }, 400);
+  if (!period || !/^\d{4}-\d{2}$/.test(period)) return c.json(err(ErrorCode.period_required, "period (YYYY-MM) required"), 400);
   const leases = await query<{ id: number; monthly_rent: number; rent_due_day: number; end_date: string }>(
     "SELECT id, monthly_rent, rent_due_day, end_date FROM leases WHERE status = 'active'",
   );
@@ -535,7 +537,7 @@ app.post("/api/rent-charges/generate", async (c) => {
 
 app.put("/api/rent-charges/:id", async (c) => {
   const id = intParam(c.req.param("id"));
-  if (!id) return c.json({ error: "Invalid ID" }, 400);
+  if (!id) return c.json(err(ErrorCode.invalid_id, "Invalid ID"), 400);
   const Patch = z.object({
     amount: z.number().min(0).optional(),
     due_date: z.string().optional(),
@@ -543,21 +545,21 @@ app.put("/api/rent-charges/:id", async (c) => {
     notes: z.string().optional().nullable(),
   });
   const parsed = await parseJson(c, Patch);
-  if (!parsed.ok) return c.json({ error: parsed.error }, 400);
+  if (!parsed.ok) return c.json(err(parsed.code, parsed.error), 400);
   const { sets, params } = buildUpdate(parsed.data);
-  if (!sets.length) return c.json({ error: "No fields" }, 400);
+  if (!sets.length) return c.json(err(ErrorCode.no_fields, "No fields"), 400);
   params.push(id);
   const r = await run(`UPDATE rent_charges SET ${sets.join(", ")} WHERE id = ?`, params);
-  if (!r.changes) return c.json({ error: "Not found" }, 404);
+  if (!r.changes) return c.json(err(ErrorCode.not_found, "Not found"), 404);
   const row = await get(`${CHARGE_SELECT} WHERE c.id = ?`, [id]);
   return c.json({ charge: row });
 });
 
 app.delete("/api/rent-charges/:id", async (c) => {
   const id = intParam(c.req.param("id"));
-  if (!id) return c.json({ error: "Invalid ID" }, 400);
+  if (!id) return c.json(err(ErrorCode.invalid_id, "Invalid ID"), 400);
   const r = await run("DELETE FROM rent_charges WHERE id = ?", [id]);
-  if (!r.changes) return c.json({ error: "Not found" }, 404);
+  if (!r.changes) return c.json(err(ErrorCode.not_found, "Not found"), 404);
   return c.json({ ok: true });
 });
 
@@ -572,14 +574,14 @@ const PaymentInput = z.object({
 
 app.get("/api/rent-charges/:id/payments", async (c) => {
   const id = intParam(c.req.param("id"));
-  if (!id) return c.json({ error: "Invalid ID" }, 400);
+  if (!id) return c.json(err(ErrorCode.invalid_id, "Invalid ID"), 400);
   const rows = await query("SELECT * FROM payments WHERE charge_id = ? ORDER BY paid_at DESC", [id]);
   return c.json({ payments: rows });
 });
 
 app.post("/api/payments", async (c) => {
   const parsed = await parseJson(c, PaymentInput);
-  if (!parsed.ok) return c.json({ error: parsed.error }, 400);
+  if (!parsed.ok) return c.json(err(parsed.code, parsed.error), 400);
   const d = parsed.data;
   await run(
     `INSERT INTO payments (charge_id, paid_at, amount, method, reference, notes)
@@ -588,7 +590,7 @@ app.post("/api/payments", async (c) => {
   );
   // Recompute the charge's amount_paid + status.
   const charge = await get<{ amount: number }>("SELECT amount FROM rent_charges WHERE id = ?", [d.charge_id]);
-  if (!charge) return c.json({ error: "Charge not found" }, 404);
+  if (!charge) return c.json(err(ErrorCode.charge_not_found, "Charge not found"), 404);
   const sumRow = await get<{ total: number }>("SELECT COALESCE(SUM(amount), 0) as total FROM payments WHERE charge_id = ?", [d.charge_id]);
   const paid = Number(sumRow?.total ?? 0);
   const status = computeChargeStatus(charge.amount, paid);
@@ -599,9 +601,9 @@ app.post("/api/payments", async (c) => {
 
 app.delete("/api/payments/:id", async (c) => {
   const id = intParam(c.req.param("id"));
-  if (!id) return c.json({ error: "Invalid ID" }, 400);
+  if (!id) return c.json(err(ErrorCode.invalid_id, "Invalid ID"), 400);
   const row = await get<{ charge_id: number }>("SELECT charge_id FROM payments WHERE id = ?", [id]);
-  if (!row) return c.json({ error: "Not found" }, 404);
+  if (!row) return c.json(err(ErrorCode.not_found, "Not found"), 404);
   await run("DELETE FROM payments WHERE id = ?", [id]);
   // Recompute the charge.
   const sumRow = await get<{ total: number }>("SELECT COALESCE(SUM(amount), 0) as total FROM payments WHERE charge_id = ?", [row.charge_id]);
@@ -630,7 +632,7 @@ app.get("/api/vendors", async (c) => {
 
 app.post("/api/vendors", async (c) => {
   const parsed = await parseJson(c, VendorInput);
-  if (!parsed.ok) return c.json({ error: parsed.error }, 400);
+  if (!parsed.ok) return c.json(err(parsed.code, parsed.error), 400);
   const d = parsed.data;
   const result = await run(
     "INSERT INTO vendors (name, category, phone, email, notes, color) VALUES (?, ?, ?, ?, ?, ?)",
@@ -642,23 +644,23 @@ app.post("/api/vendors", async (c) => {
 
 app.put("/api/vendors/:id", async (c) => {
   const id = intParam(c.req.param("id"));
-  if (!id) return c.json({ error: "Invalid ID" }, 400);
+  if (!id) return c.json(err(ErrorCode.invalid_id, "Invalid ID"), 400);
   const parsed = await parseJson(c, VendorInput.partial());
-  if (!parsed.ok) return c.json({ error: parsed.error }, 400);
+  if (!parsed.ok) return c.json(err(parsed.code, parsed.error), 400);
   const { sets, params } = buildUpdate(parsed.data);
-  if (!sets.length) return c.json({ error: "No fields" }, 400);
+  if (!sets.length) return c.json(err(ErrorCode.no_fields, "No fields"), 400);
   params.push(id);
   const r = await run(`UPDATE vendors SET ${sets.join(", ")} WHERE id = ?`, params);
-  if (!r.changes) return c.json({ error: "Not found" }, 404);
+  if (!r.changes) return c.json(err(ErrorCode.not_found, "Not found"), 404);
   const row = await get("SELECT * FROM vendors WHERE id = ?", [id]);
   return c.json({ vendor: row });
 });
 
 app.delete("/api/vendors/:id", async (c) => {
   const id = intParam(c.req.param("id"));
-  if (!id) return c.json({ error: "Invalid ID" }, 400);
+  if (!id) return c.json(err(ErrorCode.invalid_id, "Invalid ID"), 400);
   const r = await run("DELETE FROM vendors WHERE id = ?", [id]);
-  if (!r.changes) return c.json({ error: "Not found" }, 404);
+  if (!r.changes) return c.json(err(ErrorCode.not_found, "Not found"), 404);
   return c.json({ ok: true });
 });
 
@@ -708,7 +710,7 @@ app.get("/api/work-orders", async (c) => {
 
 app.post("/api/work-orders", async (c) => {
   const parsed = await parseJson(c, WorkOrderInput);
-  if (!parsed.ok) return c.json({ error: parsed.error }, 400);
+  if (!parsed.ok) return c.json(err(parsed.code, parsed.error), 400);
   const d = parsed.data;
   const result = await run(
     `INSERT INTO work_orders (property_id, unit_id, tenant_id, vendor_id, title, description, priority, status, scheduled_at, completed_at, cost, notes)
@@ -727,23 +729,23 @@ app.post("/api/work-orders", async (c) => {
 
 app.put("/api/work-orders/:id", async (c) => {
   const id = intParam(c.req.param("id"));
-  if (!id) return c.json({ error: "Invalid ID" }, 400);
+  if (!id) return c.json(err(ErrorCode.invalid_id, "Invalid ID"), 400);
   const parsed = await parseJson(c, WorkOrderInput.partial());
-  if (!parsed.ok) return c.json({ error: parsed.error }, 400);
+  if (!parsed.ok) return c.json(err(parsed.code, parsed.error), 400);
   const { sets, params } = buildUpdate(parsed.data);
-  if (!sets.length) return c.json({ error: "No fields" }, 400);
+  if (!sets.length) return c.json(err(ErrorCode.no_fields, "No fields"), 400);
   params.push(id);
   const r = await run(`UPDATE work_orders SET ${sets.join(", ")} WHERE id = ?`, params);
-  if (!r.changes) return c.json({ error: "Not found" }, 404);
+  if (!r.changes) return c.json(err(ErrorCode.not_found, "Not found"), 404);
   const row = await get(`${WO_SELECT} WHERE w.id = ?`, [id]);
   return c.json({ work_order: row });
 });
 
 app.delete("/api/work-orders/:id", async (c) => {
   const id = intParam(c.req.param("id"));
-  if (!id) return c.json({ error: "Invalid ID" }, 400);
+  if (!id) return c.json(err(ErrorCode.invalid_id, "Invalid ID"), 400);
   const r = await run("DELETE FROM work_orders WHERE id = ?", [id]);
-  if (!r.changes) return c.json({ error: "Not found" }, 404);
+  if (!r.changes) return c.json(err(ErrorCode.not_found, "Not found"), 404);
   return c.json({ ok: true });
 });
 
@@ -775,7 +777,7 @@ app.get("/api/applications", async (c) => {
 
 app.post("/api/applications", async (c) => {
   const parsed = await parseJson(c, ApplicationInput);
-  if (!parsed.ok) return c.json({ error: parsed.error }, 400);
+  if (!parsed.ok) return c.json(err(parsed.code, parsed.error), 400);
   const d = parsed.data;
   const result = await run(
     `INSERT INTO applications (unit_id, first_name, last_name, email, phone, monthly_income, employer, desired_move_in, status, notes)
@@ -797,14 +799,14 @@ app.post("/api/applications", async (c) => {
 
 app.put("/api/applications/:id", async (c) => {
   const id = intParam(c.req.param("id"));
-  if (!id) return c.json({ error: "Invalid ID" }, 400);
+  if (!id) return c.json(err(ErrorCode.invalid_id, "Invalid ID"), 400);
   const parsed = await parseJson(c, ApplicationInput.partial());
-  if (!parsed.ok) return c.json({ error: parsed.error }, 400);
+  if (!parsed.ok) return c.json(err(parsed.code, parsed.error), 400);
   const { sets, params } = buildUpdate(parsed.data);
-  if (!sets.length) return c.json({ error: "No fields" }, 400);
+  if (!sets.length) return c.json(err(ErrorCode.no_fields, "No fields"), 400);
   params.push(id);
   const r = await run(`UPDATE applications SET ${sets.join(", ")} WHERE id = ?`, params);
-  if (!r.changes) return c.json({ error: "Not found" }, 404);
+  if (!r.changes) return c.json(err(ErrorCode.not_found, "Not found"), 404);
   const row = await get(
     `SELECT a.*, u.name as unit_name, p.name as property_name
      FROM applications a LEFT JOIN units u ON u.id = a.unit_id LEFT JOIN properties p ON p.id = u.property_id
@@ -816,9 +818,9 @@ app.put("/api/applications/:id", async (c) => {
 
 app.delete("/api/applications/:id", async (c) => {
   const id = intParam(c.req.param("id"));
-  if (!id) return c.json({ error: "Invalid ID" }, 400);
+  if (!id) return c.json(err(ErrorCode.invalid_id, "Invalid ID"), 400);
   const r = await run("DELETE FROM applications WHERE id = ?", [id]);
-  if (!r.changes) return c.json({ error: "Not found" }, 404);
+  if (!r.changes) return c.json(err(ErrorCode.not_found, "Not found"), 404);
   return c.json({ ok: true });
 });
 
@@ -932,8 +934,8 @@ app.get("/api/settings", async (c) => {
 
 app.put("/api/settings", async (c) => {
   let body: unknown;
-  try { body = await c.req.json(); } catch { return c.json({ error: "Invalid JSON" }, 400); }
-  if (!body || typeof body !== "object") return c.json({ error: "Body must be an object" }, 400);
+  try { body = await c.req.json(); } catch { return c.json(err(ErrorCode.invalid_json, "Invalid JSON"), 400); }
+  if (!body || typeof body !== "object") return c.json(err(ErrorCode.invalid_body, "Body must be an object"), 400);
   const entries = Object.entries(body as Record<string, unknown>).filter(([, v]) => v !== undefined && v !== null);
   for (const [key, value] of entries) {
     await run(
