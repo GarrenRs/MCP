@@ -7,14 +7,7 @@ import { Card } from "@/components/ui/card";
 import { PropertyDialog } from "./property-dialog";
 import type { Property } from "@/types";
 import { PageShell } from "@/components/page-shell";
-
-const TYPE_LABEL: Record<string, string> = {
-  single_family: "Single-family",
-  multi_family: "Multi-family",
-  condo: "Condo",
-  townhouse: "Townhouse",
-  commercial: "Commercial",
-};
+import { tf } from "@/i18n";
 
 export function PropertiesList({ navigate }: { navigate: (to: string) => void }) {
   const { properties } = useApp();
@@ -26,13 +19,13 @@ export function PropertiesList({ navigate }: { navigate: (to: string) => void })
 
   return (
     <PageShell
-      title="Properties"
-      meta={`${properties.length} ${properties.length === 1 ? "property" : "properties"} · ${totalUnits} ${totalUnits === 1 ? "unit" : "units"} · ${occupied}/${totalUnits || 0} occupied`}
+      title={tf("properties.title")}
+      meta={`${tf(properties.length === 1 ? "common.properties_n" : "common.properties_n_plural", properties.length)} · ${tf(totalUnits === 1 ? "common.units_n" : "common.units_n_plural", totalUnits)} · ${tf("common.occupied_of", occupied, totalUnits || 0)}`}
       actions={
         properties.length > 0 ? (
           <Button onClick={() => { setEditing(undefined); setDialogOpen(true); }}>
             <Plus className="h-4 w-4" />
-            New property
+            {tf("properties.new")}
           </Button>
         ) : null
       }
@@ -40,12 +33,12 @@ export function PropertiesList({ navigate }: { navigate: (to: string) => void })
       {properties.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-2 px-6 py-20 text-center">
             <Building2 className="size-8 text-faint" aria-hidden />
-            <p className="font-medium">No properties yet</p>
+            <p className="font-medium">{tf("properties.no_properties")}</p>
             <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
-              Add your first property to start managing units, leases, and rent.
+              {tf("properties.empty_desc")}
             </p>
             <Button className="mt-2" onClick={() => { setEditing(undefined); setDialogOpen(true); }}>
-              <Plus className="h-4 w-4" /> New property
+              <Plus className="h-4 w-4" /> {tf("properties.new")}
             </Button>
           </div>
         ) : (
@@ -68,20 +61,20 @@ export function PropertiesList({ navigate }: { navigate: (to: string) => void })
                       <Building2 className="size-5" />
                     </div>
                     <span className="chip">
-                      {TYPE_LABEL[p.type] ?? p.type}
+                      {tf(`property_type.${p.type}`)}
                     </span>
                   </div>
                   <h3 className="font-semibold tracking-tight">{p.name}</h3>
-                  {(p.address || p.city) && (
+                  {(p.address || p.city || p.commune || p.wilaya) && (
                     <p className="mt-1 flex items-center gap-1 truncate text-sm text-muted-foreground">
                       <MapPin className="h-3 w-3 shrink-0" />
-                      {[p.address, p.city, p.state].filter(Boolean).join(", ")}
+                      {[p.address, p.commune, p.wilaya, p.country, p.city, p.state].filter(Boolean).join(", ")}
                     </p>
                   )}
                   <div className="mt-4 grid grid-cols-3 gap-3 border-t pt-4 text-sm">
-                    <Stat label="Units" value={p.unit_count ?? 0} />
-                    <Stat label="Occupied" value={`${p.occupied_count ?? 0}/${p.unit_count ?? 0}`} />
-                    <Stat label="Occupancy" value={`${occRate}%`} />
+                    <Stat label={tf("properties.units")} value={p.unit_count ?? 0} />
+                    <Stat label={tf("properties.occupied")} value={`${p.occupied_count ?? 0}/${p.unit_count ?? 0}`} />
+                    <Stat label={tf("properties.occupancy")} value={`${occRate}%`} />
                   </div>
                   <div className="mt-3 flex items-center justify-between">
                     <button
@@ -89,10 +82,10 @@ export function PropertiesList({ navigate }: { navigate: (to: string) => void })
                       onClick={(e) => { e.stopPropagation(); setEditing(p); setDialogOpen(true); }}
                       className="text-xs text-muted-foreground hover:text-foreground"
                     >
-                      Edit
+                      {tf("common.edit")}
                     </button>
                     {p.year_built && (
-                      <span className="text-xs text-muted-foreground">Built {p.year_built}</span>
+                      <span className="text-xs text-muted-foreground">{tf("properties.built", p.year_built)}</span>
                     )}
                   </div>
                 </Card>

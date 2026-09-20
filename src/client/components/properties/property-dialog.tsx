@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { tf } from "@/i18n";
+import { WILAYAS } from "@/lib/wilayas";
 import type { Property, PropertyType } from "@/types";
 
 interface Props {
@@ -17,11 +19,11 @@ interface Props {
 }
 
 const TYPES: { value: PropertyType; label: string }[] = [
-  { value: "single_family", label: "Single-family home" },
-  { value: "multi_family", label: "Multi-family / apartments" },
-  { value: "condo", label: "Condo" },
-  { value: "townhouse", label: "Townhouse" },
-  { value: "commercial", label: "Commercial" },
+  { value: "single_family", label: "property_type.single_family" },
+  { value: "multi_family", label: "property_type.multi_family" },
+  { value: "condo", label: "property_type.condo" },
+  { value: "townhouse", label: "property_type.townhouse" },
+  { value: "commercial", label: "property_type.commercial" },
 ];
 
 const COLORS = ["sky", "emerald", "amber", "rose", "violet", "fuchsia", "teal", "orange", "slate"];
@@ -35,6 +37,9 @@ export function PropertyDialog({ open, onOpenChange, property, onSaved }: Props)
   const [city, setCity] = useState("");
   const [stateName, setStateName] = useState("");
   const [zip, setZip] = useState("");
+  const [country, setCountry] = useState("DZ");
+  const [wilaya, setWilaya] = useState("");
+  const [commune, setCommune] = useState("");
   const [yearBuilt, setYearBuilt] = useState("");
   const [color, setColor] = useState("sky");
   const [notes, setNotes] = useState("");
@@ -48,6 +53,9 @@ export function PropertyDialog({ open, onOpenChange, property, onSaved }: Props)
     setCity(property?.city ?? "");
     setStateName(property?.state ?? "");
     setZip(property?.zip ?? "");
+    setCountry(property?.country ?? "DZ");
+    setWilaya(property?.wilaya ?? "");
+    setCommune(property?.commune ?? "");
     setYearBuilt(property?.year_built ? String(property.year_built) : "");
     setColor(property?.color ?? "sky");
     setNotes(property?.notes ?? "");
@@ -64,6 +72,9 @@ export function PropertyDialog({ open, onOpenChange, property, onSaved }: Props)
         city: city.trim() || null,
         state: stateName.trim() || null,
         zip: zip.trim() || null,
+        country: country.trim() || null,
+        wilaya: wilaya || null,
+        commune: commune.trim() || null,
         year_built: yearBuilt ? parseInt(yearBuilt, 10) : null,
         color,
         notes: notes.trim() || null,
@@ -95,26 +106,26 @@ export function PropertyDialog({ open, onOpenChange, property, onSaved }: Props)
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>{property ? "Edit property" : "New property"}</DialogTitle>
+          <DialogTitle>{property ? tf("properties.edit_title") : tf("properties.new_title")}</DialogTitle>
         </DialogHeader>
 
         <div className="grid gap-3">
           <div>
-            <Label htmlFor="prop-name">Name</Label>
+            <Label htmlFor="prop-name">{tf("common.name")}</Label>
             <Input id="prop-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Oakwood Estate" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label>Type</Label>
+              <Label>{tf("common.type")}</Label>
               <Select value={type} onValueChange={(v) => setType(v as PropertyType)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {TYPES.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+                  {TYPES.map((t) => <SelectItem key={t.value} value={t.value}>{tf(t.label)}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label>Color</Label>
+              <Label>{tf("common.color")}</Label>
               <Select value={color} onValueChange={setColor}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -131,29 +142,50 @@ export function PropertyDialog({ open, onOpenChange, property, onSaved }: Props)
             </div>
           </div>
           <div>
-            <Label htmlFor="prop-addr">Address</Label>
+            <Label htmlFor="prop-addr">{tf("common.address")}</Label>
             <Input id="prop-addr" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="123 Main St" />
           </div>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label htmlFor="prop-city">City</Label>
+              <Label>{tf("geo.wilaya")}</Label>
+              <Select value={wilaya} onValueChange={setWilaya}>
+                <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+                <SelectContent>
+                  {WILAYAS.map((w) => <SelectItem key={w.code} value={w.name}>{w.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="prop-commune">{tf("geo.commune")}</Label>
+              <Input id="prop-commune" value={commune} onChange={(e) => setCommune(e.target.value)} />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label htmlFor="prop-city">{tf("common.city")}</Label>
               <Input id="prop-city" value={city} onChange={(e) => setCity(e.target.value)} />
             </div>
             <div>
-              <Label htmlFor="prop-state">State</Label>
-              <Input id="prop-state" value={stateName} onChange={(e) => setStateName(e.target.value)} />
+              <Label htmlFor="prop-country">{tf("geo.country")}</Label>
+              <Input id="prop-country" value={country} onChange={(e) => setCountry(e.target.value)} />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label htmlFor="prop-state">{tf("common.state")}</Label>
+              <Input id="prop-state" value={stateName} onChange={(e) => setStateName(e.target.value)} placeholder="—" />
             </div>
             <div>
-              <Label htmlFor="prop-zip">Zip</Label>
-              <Input id="prop-zip" value={zip} onChange={(e) => setZip(e.target.value)} />
+              <Label htmlFor="prop-zip">{tf("common.zip")}</Label>
+              <Input id="prop-zip" value={zip} onChange={(e) => setZip(e.target.value)} placeholder="—" />
             </div>
           </div>
           <div>
-            <Label htmlFor="prop-year">Year built</Label>
+            <Label htmlFor="prop-year">{tf("common.year_built")}</Label>
             <Input id="prop-year" type="number" value={yearBuilt} onChange={(e) => setYearBuilt(e.target.value)} />
           </div>
           <div>
-            <Label htmlFor="prop-notes">Notes</Label>
+            <Label htmlFor="prop-notes">{tf("common.notes")}</Label>
             <Textarea id="prop-notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} />
           </div>
         </div>
@@ -161,12 +193,12 @@ export function PropertyDialog({ open, onOpenChange, property, onSaved }: Props)
         <DialogFooter className="mt-2">
           {property && (
             <Button type="button" variant="destructive" className="sm:mr-auto" onClick={() => setConfirming(true)}>
-              Delete
+              {tf("common.delete")}
             </Button>
           )}
-          <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>{tf("common.cancel")}</Button>
           <Button type="button" onClick={save} disabled={saving || !name.trim()}>
-            {property ? "Save changes" : "Create property"}
+            {property ? tf("common.save") : tf("properties.new")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -176,9 +208,10 @@ export function PropertyDialog({ open, onOpenChange, property, onSaved }: Props)
         <ConfirmDelete
           open={confirming}
           onOpenChange={setConfirming}
-          title={`Delete "${property.name}"?`}
-          description="Its units, leases, and rent history go with it. This cannot be undone."
+          title={tf("properties.delete_title")}
+          description={tf("properties.delete_desc")}
           onConfirm={remove}
+          confirmLabel={tf("common.delete")}
         />
       ) : null}
     </>

@@ -13,6 +13,7 @@ import { LeasesPage } from "./components/leases/leases-page";
 import { RentPage } from "./components/rent/rent-page";
 import { MaintenancePage } from "./components/maintenance/maintenance-page";
 import { SettingsPage } from "./components/settings/settings-page";
+import { t } from "./i18n";
 
 /**
  * The navigation, defined once.
@@ -41,6 +42,26 @@ const ADMIN: AppNavItem[] = [
   { id: "settings", label: "Settings", href: "/settings", icon: "settings" },
 ];
 
+/** NAV_LABELS binds the static groups to the active catalog. */
+const NAV_LABELS: Record<string, string> = {
+  dashboard: "nav.dashboard",
+  properties: "nav.properties",
+  tenants: "nav.tenants",
+  leases: "nav.leases",
+  rent: "nav.rent",
+  maintenance: "nav.maintenance",
+  settings: "nav.settings",
+  operations: "nav.operations",
+  admin: "nav.admin",
+};
+
+function localizeNav(groups: { label?: string; items: AppNavItem[] }[]): { label?: string; items: AppNavItem[] }[] {
+  return groups.map((g) => ({
+    label: g.label ? t(NAV_LABELS[g.label] ?? g.label) : undefined,
+    items: g.items.map((item) => ({ ...item, label: t(NAV_LABELS[item.id] ?? item.label) })),
+  }));
+}
+
 /** A record page keeps its collection's row lit. */
 function activeFor(route: Route): string {
   if (route.name === "property") return "properties";
@@ -57,11 +78,11 @@ export function App() {
     reportLocation(path);
   }, [path]);
 
-  const groups = [
+  const groups = localizeNav([
     { items: PORTFOLIO },
-    { label: "Operations", items: OPERATIONS },
-    { label: "Admin", items: ADMIN },
-  ];
+    { label: "operations", items: OPERATIONS },
+    { label: "admin", items: ADMIN },
+  ]);
 
   return (
     <AppContext.Provider value={state}>
@@ -71,7 +92,7 @@ export function App() {
             the flex-col above puts ABOVE the content rather than beside it. */}
         <div className="flex shrink-0">
           <AppNav
-            title="OpenProperty"
+            title={t("app.brand")}
             icon="home"
             groups={groups}
             active={activeFor(route)}
@@ -81,7 +102,7 @@ export function App() {
         <main className="flex min-w-0 flex-1 flex-col overflow-hidden">
           {state.loading ? (
             <div className="flex flex-1 items-center justify-center text-muted-foreground">
-              Loading…
+              {t("app.loading")}
             </div>
           ) : (
             <>
@@ -95,7 +116,7 @@ export function App() {
               {route.name === "maintenance" && <MaintenancePage />}
               {route.name === "settings" && <SettingsPage />}
               {route.name === "not-found" && (
-                <Placeholder title="Not found" message="That page doesn't exist." />
+                <Placeholder title={t("app.not_found_title")} message={t("app.not_found_msg")} />
               )}
             </>
           )}

@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { tf } from "@/i18n";
 import type { Tenant } from "@/types";
 
 interface Props {
@@ -84,63 +85,63 @@ export function TenantDialog({ open, onOpenChange, tenant, onSaved }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{tenant ? "Edit tenant" : "New tenant"}</DialogTitle>
+          <DialogTitle>{tenant ? tf("tenants.edit_title") : tf("tenants.new_title")}</DialogTitle>
         </DialogHeader>
         <div className="grid gap-3">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label htmlFor="t-first">First name</Label>
+              <Label htmlFor="t-first">{tf("common.first_name")}</Label>
               <Input id="t-first" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
             </div>
             <div>
-              <Label htmlFor="t-last">Last name</Label>
+              <Label htmlFor="t-last">{tf("common.last_name")}</Label>
               <Input id="t-last" value={lastName} onChange={(e) => setLastName(e.target.value)} />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label htmlFor="t-email">Email</Label>
+              <Label htmlFor="t-email">{tf("common.email")}</Label>
               <Input id="t-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
             </div>
             <div>
-              <Label htmlFor="t-phone">Phone</Label>
+              <Label htmlFor="t-phone">{tf("common.phone")}</Label>
               <Input id="t-phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label htmlFor="t-dob">Date of birth</Label>
+              <Label htmlFor="t-dob">{tf("tenants.date_of_birth")}</Label>
               <Input id="t-dob" type="date" value={dob} onChange={(e) => setDob(e.target.value)} />
             </div>
             <div>
-              <Label htmlFor="t-emerg">Emergency contact</Label>
+              <Label htmlFor="t-emerg">{tf("tenants.emergency_contact")}</Label>
               <Input id="t-emerg" value={emergency} onChange={(e) => setEmergency(e.target.value)} placeholder="Name · phone" />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label htmlFor="t-emp">Employer</Label>
+              <Label htmlFor="t-emp">{tf("tenants.employer")}</Label>
               <Input id="t-emp" value={employer} onChange={(e) => setEmployer(e.target.value)} />
             </div>
             <div>
-              <Label htmlFor="t-inc">Monthly income</Label>
+              <Label htmlFor="t-inc">{tf("tenants.monthly_income")}</Label>
               <Input id="t-inc" type="number" value={income} onChange={(e) => setIncome(e.target.value)} />
             </div>
           </div>
           <div>
-            <Label htmlFor="t-notes">Notes</Label>
+            <Label htmlFor="t-notes">{tf("common.notes")}</Label>
             <Textarea id="t-notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
           </div>
         </div>
         <DialogFooter className="mt-2">
           {tenant && (
             <Button type="button" variant="destructive" className="sm:mr-auto" onClick={() => setConfirming(true)}>
-              Delete
+              {tf("common.delete")}
             </Button>
           )}
-          <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>{tf("common.cancel")}</Button>
           <Button type="button" onClick={save} disabled={saving || !firstName.trim() || !lastName.trim()}>
-            {tenant ? "Save changes" : "Create tenant"}
+            {tenant ? tf("common.save") : tf("tenants.new")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -150,8 +151,8 @@ export function TenantDialog({ open, onOpenChange, tenant, onSaved }: Props) {
         <ConfirmDelete
           open={confirming}
           onOpenChange={setConfirming}
-          title={`Delete ${tenant.first_name} ${tenant.last_name}?`}
-          description="Their leases and rent history go with them. This cannot be undone."
+          title={tf("tenants.delete_title")}
+          description={tf("tenants.delete_desc")}
           onConfirm={remove}
         />
       ) : null}

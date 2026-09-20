@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { TenantDialog } from "./tenant-dialog";
 import type { Tenant } from "@/types";
 import { PageShell } from "@/components/page-shell";
+import { tf } from "@/i18n";
 
 export function TenantsList({ navigate }: { navigate: (to: string) => void }) {
   const app = useApp();
@@ -40,12 +41,12 @@ export function TenantsList({ navigate }: { navigate: (to: string) => void }) {
 
   return (
     <PageShell
-      title="Tenants"
-      meta={`${tenants.length} ${tenants.length === 1 ? "record" : "records"}`}
+      title={tf("tenants.title")}
+      meta={tf(tenants.length === 1 ? "common.record_n" : "common.record_n_plural", tenants.length)}
       actions={
         tenants.length > 0 ? (
           <Button onClick={() => setDialogOpen(true)}>
-            <Plus className="h-4 w-4" /> New tenant
+            <Plus className="h-4 w-4" /> {tf("tenants.new")}
           </Button>
         ) : null
       }
@@ -55,7 +56,7 @@ export function TenantsList({ navigate }: { navigate: (to: string) => void }) {
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search by name, email, phone, property, or unit"
+            placeholder={tf("tenants.search")}
             className="pl-9"
             value={q}
             onChange={(e) => setQ(e.target.value)}
@@ -63,15 +64,15 @@ export function TenantsList({ navigate }: { navigate: (to: string) => void }) {
         </div>
 
         {loading ? (
-          <Card className="p-8 text-center text-sm text-muted-foreground">Loading…</Card>
+          <Card className="p-8 text-center text-sm text-muted-foreground">{tf("common.loading")}</Card>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-2 px-6 py-20 text-center">
             <User className="size-7 text-faint" aria-hidden />
-            <p className="font-medium">{tenants.length === 0 ? "No tenants yet" : "No matches"}</p>
-            <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">{tenants.length === 0 ? "Add a tenant to start signing leases." : "Try a different search."}</p>
+            <p className="font-medium">{tenants.length === 0 ? tf("tenants.no_tenants") : tf("common.no_matches")}</p>
+            <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">{tenants.length === 0 ? tf("tenants.empty_desc") : tf("tenants.try_search")}</p>
             {tenants.length === 0 && (
               <Button className="mt-2" onClick={() => setDialogOpen(true)}>
-                <Plus className="mr-1 h-4 w-4" /> New tenant
+                <Plus className="mr-1 h-4 w-4" /> {tf("tenants.new")}
               </Button>
             )}
           </div>
@@ -80,10 +81,10 @@ export function TenantsList({ navigate }: { navigate: (to: string) => void }) {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Active unit</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Phone</TableHead>
+                  <TableHead>{tf("tenants.name")}</TableHead>
+                  <TableHead>{tf("tenants.active_unit")}</TableHead>
+                  <TableHead>{tf("tenants.email")}</TableHead>
+                  <TableHead>{tf("tenants.phone")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

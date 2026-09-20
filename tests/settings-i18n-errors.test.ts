@@ -14,10 +14,11 @@ beforeEach(() => {
 });
 
 describe("settings (P3)", () => {
-  it("defaults locale to en", async () => {
+  it("defaults locale to fr-DZ and currency to DZD", async () => {
     const res = await call<{ settings: Record<string, string> }>(env, "GET", "/api/settings");
     expect(res.status).toBe(200);
-    expect(res.body.settings.locale).toBe("en");
+    expect(res.body.settings.locale).toBe("fr-DZ");
+    expect(res.body.settings.currency).toBe("DZD");
   });
 
   it("reads and writes locale", async () => {
@@ -43,7 +44,7 @@ describe("settings (P3)", () => {
       default_rent_due_day: "1",
       late_fee_amount: "75",
       late_fee_grace_days: "5",
-      currency: "USD",
+      currency: "DZD",
       locale: "ar",
     });
     const get = await call<{ settings: Record<string, string> }>(env, "GET", "/api/settings");

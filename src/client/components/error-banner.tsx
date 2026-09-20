@@ -1,5 +1,6 @@
 import { useApp } from "../context";
 import { X } from "lucide-react";
+import { t } from "../i18n";
 
 export function ErrorBanner() {
   const { error, setError } = useApp();
@@ -11,7 +12,7 @@ export function ErrorBanner() {
         type="button"
         onClick={() => setError(null)}
         className="opacity-80 hover:opacity-100"
-        aria-label="Dismiss"
+        aria-label={t("common.dismiss")}
       >
         <X className="h-4 w-4" />
       </button>

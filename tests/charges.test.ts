@@ -106,7 +106,7 @@ describe("settings defaults (integration)", () => {
       default_rent_due_day: "1",
       late_fee_amount: "50",
       late_fee_grace_days: "5",
-      currency: "USD",
+      currency: "DZD",
     });
   });
 

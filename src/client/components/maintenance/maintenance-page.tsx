@@ -9,6 +9,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { WorkOrderDialog } from "./work-order-dialog";
 import type { WorkOrder, WorkOrderStatus } from "@/types";
 import { PageShell } from "@/components/page-shell";
+import { tf } from "@/i18n";
 
 const PRIORITY_TONE: Record<string, string> = {
   urgent: "bg-destructive-tint text-destructive",
@@ -67,19 +68,19 @@ export function MaintenancePage() {
 
   return (
     <PageShell
-      title="Maintenance"
+      title={tf("maintenance.title")}
       meta={<>
-          {counts.open + counts.assigned + counts.in_progress} open
+          {tf("maintenance.open_count", counts.open + counts.assigned + counts.in_progress)}
           {counts.urgent > 0 && (
             <span className="badge-tone tone-danger ml-2">
-              <CircleAlert className="h-3 w-3" /> {counts.urgent} urgent
+              <CircleAlert className="h-3 w-3" /> {tf("common.urgent_count", counts.urgent)}
             </span>
           )}
         </>}
       actions={
         filtered.length > 0 ? (
           <Button onClick={() => { setEditing(undefined); setDialogOpen(true); }}>
-            <Plus className="h-4 w-4" /> New work order
+            <Plus className="h-4 w-4" /> {tf("maintenance.new")}
           </Button>
         ) : null
       }
@@ -87,27 +88,27 @@ export function MaintenancePage() {
 
         <Tabs value={filter} onValueChange={(v) => setFilter(v as never)}>
           <TabsList>
-            <TabsTrigger value="open_all">Open</TabsTrigger>
-            <TabsTrigger value="open">Unassigned</TabsTrigger>
-            <TabsTrigger value="assigned">Assigned</TabsTrigger>
-            <TabsTrigger value="in_progress">In progress</TabsTrigger>
-            <TabsTrigger value="completed">Completed</TabsTrigger>
-            <TabsTrigger value="all">All</TabsTrigger>
+            <TabsTrigger value="open_all">{tf("maintenance.open")}</TabsTrigger>
+            <TabsTrigger value="open">{tf("maintenance.unassigned")}</TabsTrigger>
+            <TabsTrigger value="assigned">{tf("maintenance.assigned")}</TabsTrigger>
+            <TabsTrigger value="in_progress">{tf("maintenance.in_progress")}</TabsTrigger>
+            <TabsTrigger value="completed">{tf("maintenance.completed")}</TabsTrigger>
+            <TabsTrigger value="all">{tf("maintenance.all")}</TabsTrigger>
           </TabsList>
         </Tabs>
 
         {loading ? (
-          <Card className="p-8 text-center text-sm text-muted-foreground">Loading…</Card>
+          <Card className="p-8 text-center text-sm text-muted-foreground">{tf("common.loading")}</Card>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-2 px-6 py-20 text-center">
             <Wrench className="size-7 text-faint" aria-hidden />
-            <p className="font-medium">Nothing here</p>
+            <p className="font-medium">{tf("maintenance.nothing")}</p>
             <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
-              {orders.length === 0 ? "Track repairs and turnover work for your properties." : "No work orders match this filter."}
+              {orders.length === 0 ? tf("maintenance.empty_desc") : tf("maintenance.no_match")}
             </p>
             {orders.length === 0 && (
               <Button className="mt-2" onClick={() => { setEditing(undefined); setDialogOpen(true); }}>
-                <Plus className="mr-1 h-4 w-4" /> New work order
+                <Plus className="mr-1 h-4 w-4" /> {tf("maintenance.new")}
               </Button>
             )}
           </div>
@@ -123,12 +124,12 @@ export function MaintenancePage() {
                   <div className="min-w-0 flex-1">
                     <h3 className="truncate font-semibold">{w.title}</h3>
                     <p className="mt-1 text-xs text-muted-foreground">
-                      {[w.property_name, w.unit_name].filter(Boolean).join(" · ") || "Unassigned"}
+                      {[w.property_name, w.unit_name].filter(Boolean).join(" · ") || tf("common.unassigned")}
                     </p>
                   </div>
                   <span className={cn("inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold capitalize", PRIORITY_TONE[w.priority])}>
                     {w.priority === "urgent" && <CircleAlert className="mr-1 h-3 w-3" />}
-                    {w.priority}
+                    {tf(`priority.${w.priority}`)}
                   </span>
                 </div>
                 {w.description && (
@@ -136,13 +137,13 @@ export function MaintenancePage() {
                 )}
                 <div className="mt-3 flex items-center justify-between border-t pt-3 text-xs">
                   <div className="flex items-center gap-2">
-                    <Badge variant={STATUS_VARIANT[w.status] ?? "secondary"} className="capitalize">{w.status.replace("_", " ")}</Badge>
+                    <Badge variant={STATUS_VARIANT[w.status] ?? "secondary"} className="capitalize">{tf(`wo_status.${w.status}`)}</Badge>
                     {w.vendor_name && <span className="text-muted-foreground">{w.vendor_name}</span>}
                   </div>
                   <div className="text-right text-muted-foreground">
-                    {w.scheduled_at && <div>Scheduled {formatDate(w.scheduled_at)}</div>}
+                    {w.scheduled_at && <div>{tf("maintenance.scheduled", formatDate(w.scheduled_at))}</div>}
                     {w.cost != null && <div className="font-medium tabular-nums text-foreground">{formatMoney(w.cost, app.settings.currency)}</div>}
-                    {!w.scheduled_at && w.cost == null && <div>Created {formatDate(w.created_at)}</div>}
+                    {!w.scheduled_at && w.cost == null && <div>{tf("maintenance.created", formatDate(w.created_at))}</div>}
                   </div>
                 </div>
               </Card>

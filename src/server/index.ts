@@ -29,8 +29,8 @@ const DEFAULT_SETTINGS: Record<string, string> = {
   default_rent_due_day: "1",
   late_fee_amount: "50",
   late_fee_grace_days: "5",
-  currency: "USD",
-  locale: "en",
+  currency: "DZD",
+  locale: "fr-DZ",
 };
 
 const DEMO_PROPERTIES: Array<[string, string, string, string, string, string, string]> = [
@@ -138,6 +138,9 @@ const PropertyInput = z.object({
   city: z.string().optional().nullable(),
   state: z.string().optional().nullable(),
   zip: z.string().optional().nullable(),
+  country: z.string().optional().nullable(),
+  wilaya: z.string().optional().nullable(),
+  commune: z.string().optional().nullable(),
   year_built: z.number().int().optional().nullable(),
   notes: z.string().optional().nullable(),
   color: z.string().optional(),
@@ -165,10 +168,19 @@ app.post("/api/properties", async (c) => {
   const parsed = await parseJson(c, PropertyInput);
   if (!parsed.ok) return c.json(err(parsed.code, parsed.error), 400);
   const d = parsed.data;
+  const cols = ["name", "type", "address", "city", "state", "zip", "year_built", "notes", "color"];
+  const vals = [d.name, d.type ?? "single_family", d.address ?? null, d.city ?? null, d.state ?? null, d.zip ?? null, d.year_built ?? null, d.notes ?? null, d.color ?? "sky"];
+  // Geographical columns are additive and nullable; only write them when the
+  // request supplies a value (a pre-migration database has no columns).
+  for (const [key, value] of [["country", d.country], ["wilaya", d.wilaya], ["commune", d.commune]] as const) {
+    if (value !== undefined && value !== null) {
+      cols.push(key);
+      vals.push(value);
+    }
+  }
   const result = await run(
-    `INSERT INTO properties (name, type, address, city, state, zip, year_built, notes, color)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [d.name, d.type ?? "single_family", d.address ?? null, d.city ?? null, d.state ?? null, d.zip ?? null, d.year_built ?? null, d.notes ?? null, d.color ?? "sky"],
+    `INSERT INTO properties (${cols.join(", ")}) VALUES (${cols.map(() => "?").join(", ")})`,
+    vals,
   );
   const row = await get("SELECT * FROM properties WHERE id = ?", [result.lastInsertRowid]);
   return c.json({ property: row }, 201);

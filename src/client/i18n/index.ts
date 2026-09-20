@@ -1,12 +1,13 @@
 import en from "./en.json";
 import ar from "./ar.json";
+import fr from "./fr.json";
 
-export type Locale = "en" | "ar";
+export type Locale = "en" | "ar" | "fr-DZ";
 
-const CATALOGS: Record<Locale, unknown> = { en, ar };
+const CATALOGS: Record<Locale, unknown> = { en, ar, "fr-DZ": fr };
 
 const DEFAULT_LOCALE: Locale = "en";
-const SUPPORTED_LOCALES: Locale[] = ["en", "ar"];
+const SUPPORTED_LOCALES: Locale[] = ["en", "ar", "fr-DZ"];
 
 let currentLocale: Locale = DEFAULT_LOCALE;
 
@@ -44,6 +45,15 @@ function lookup(catalog: unknown, dotted: string): string | undefined {
 export function t(key: string, locale?: Locale | string): string {
   const loc = locale && isSupportedLocale(locale) ? locale : currentLocale;
   return lookup(CATALOGS[loc], key) ?? lookup(CATALOGS.en, key) ?? key;
+}
+
+/** Translate a key and substitute {0}, {1}, … positional tokens in place. */
+export function tf(key: string, ...args: (string | number)[]): string {
+  let out = t(key);
+  for (let i = 0; i < args.length; i++) {
+    out = out.replace(`{${i}}`, String(args[i]));
+  }
+  return out;
 }
 
 /**

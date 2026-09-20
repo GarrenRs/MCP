@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import type { Payment, PaymentMethod, RentCharge } from "@/types";
+import { tf } from "@/i18n";
 
 interface Props {
   open: boolean;
@@ -18,13 +19,7 @@ interface Props {
   onSaved?: () => void;
 }
 
-const METHODS: { value: PaymentMethod; label: string }[] = [
-  { value: "cash", label: "Cash" },
-  { value: "check", label: "Check" },
-  { value: "ach", label: "ACH / bank transfer" },
-  { value: "credit", label: "Credit card" },
-  { value: "other", label: "Other" },
-];
+const METHODS: PaymentMethod[] = ["cash", "check", "ach", "credit", "other"];
 
 export function PaymentDialog({ open, onOpenChange, charge, onSaved }: Props) {
   const app = useApp();
@@ -99,7 +94,7 @@ export function PaymentDialog({ open, onOpenChange, charge, onSaved }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Record payment</DialogTitle>
+          <DialogTitle>{tf("payments.title")}</DialogTitle>
         </DialogHeader>
 
         <div className="rounded-md bg-muted/40 p-3 text-sm">
@@ -107,64 +102,64 @@ export function PaymentDialog({ open, onOpenChange, charge, onSaved }: Props) {
             {charge.property_name} · {charge.unit_name}
           </div>
           <div className="text-xs text-muted-foreground">
-            {charge.tenant_first_name} {charge.tenant_last_name} · Due {formatDate(charge.due_date)} · {formatMoney(charge.amount, app.settings.currency)} charged
+            {charge.tenant_first_name} {charge.tenant_last_name} · {tf("payments.due", formatDate(charge.due_date))} · {tf("payments.charged", formatMoney(charge.amount, app.settings.currency))}
           </div>
           <div className="mt-1 text-xs">
-            Paid so far: <span className="font-medium tabular-nums">{formatMoney(charge.amount_paid, app.settings.currency)}</span> ·
-            Remaining: <span className="font-medium tabular-nums">{formatMoney(remaining, app.settings.currency)}</span>
+            {tf("payments.paid_so_far")} <span className="font-medium tabular-nums">{formatMoney(charge.amount_paid, app.settings.currency)}</span> ·
+            {tf("payments.remaining")} <span className="font-medium tabular-nums">{formatMoney(remaining, app.settings.currency)}</span>
           </div>
         </div>
 
         <div className="grid gap-3">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label htmlFor="pay-amount">Amount</Label>
+              <Label htmlFor="pay-amount">{tf("payments.amount")}</Label>
               <Input id="pay-amount" type="number" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} />
             </div>
             <div>
-              <Label htmlFor="pay-date">Paid on</Label>
+              <Label htmlFor="pay-date">{tf("payments.paid_on")}</Label>
               <Input id="pay-date" type="date" value={paidAt} onChange={(e) => setPaidAt(e.target.value)} />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label>Method</Label>
+              <Label>{tf("payments.method")}</Label>
               <Select value={method} onValueChange={(v) => setMethod(v as PaymentMethod)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {METHODS.map((m) => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
+                  {METHODS.map((m) => <SelectItem key={m} value={m}>{tf(`payment_method.${m}`)}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label htmlFor="pay-ref">Reference</Label>
-              <Input id="pay-ref" value={reference} onChange={(e) => setReference(e.target.value)} placeholder="Check #, transaction ID" />
+              <Label htmlFor="pay-ref">{tf("payments.reference")}</Label>
+              <Input id="pay-ref" value={reference} onChange={(e) => setReference(e.target.value)} placeholder={tf("payments.ref_placeholder")} />
             </div>
           </div>
           <div>
-            <Label htmlFor="pay-notes">Notes</Label>
+            <Label htmlFor="pay-notes">{tf("common.notes")}</Label>
             <Textarea id="pay-notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
           </div>
         </div>
 
         {history.length > 0 && (
           <div className="mt-2">
-            <div className="section-label mb-1.5">Past payments</div>
+            <div className="section-label mb-1.5">{tf("payments.past")}</div>
             <ul className="divide-y divide-border overflow-hidden rounded-md shadow-edge">
               {history.map((p) => (
                 <li key={p.id} className="flex items-center justify-between gap-2 px-3 py-2 text-sm">
                   <div>
                     <span className="font-medium tabular-nums">{formatMoney(p.amount, app.settings.currency)}</span>
-                    <span className="text-muted-foreground"> · {formatDate(p.paid_at)} · {p.method}</span>
+                    <span className="text-muted-foreground"> · {formatDate(p.paid_at)} · {tf(`payment_method.${p.method}`)}</span>
                     {p.reference && <span className="text-muted-foreground"> · {p.reference}</span>}
                   </div>
                   <button
                     type="button"
                     className="text-xs text-muted-foreground transition-colors duration-150 hover:text-destructive"
                     onClick={() => setConfirming(p.id)}
-                    aria-label={`Remove the ${formatMoney(p.amount, app.settings.currency)} payment from ${formatDate(p.paid_at)}`}
+                    aria-label={tf("payments.remove_confirm", `${formatMoney(p.amount, app.settings.currency)} (${formatDate(p.paid_at)})`)}
                   >
-                    Remove
+                    {tf("payments.remove")}
                   </button>
                 </li>
               ))}
@@ -173,9 +168,9 @@ export function PaymentDialog({ open, onOpenChange, charge, onSaved }: Props) {
         )}
 
         <DialogFooter className="mt-2">
-          <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Close</Button>
+          <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>{tf("common.close")}</Button>
           <Button type="button" onClick={save} disabled={saving || parseFloat(amount) <= 0}>
-            Record payment
+            {tf("payments.title")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -185,9 +180,9 @@ export function PaymentDialog({ open, onOpenChange, charge, onSaved }: Props) {
         <ConfirmDelete
           open
           onOpenChange={(o) => !o && setConfirming(null)}
-          title={`Remove the ${formatMoney(pending.amount, app.settings.currency)} payment?`}
-          description="The charge it was applied to goes back to its outstanding balance."
-          confirmLabel="Remove payment"
+          title={tf("payments.remove_confirm", formatMoney(pending.amount, app.settings.currency))}
+          description={tf("payments.remove_desc")}
+          confirmLabel={tf("payments.remove_payment")}
           onConfirm={() => {
             const id = pending.id;
             setConfirming(null);

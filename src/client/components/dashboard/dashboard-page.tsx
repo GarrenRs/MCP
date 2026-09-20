@@ -15,6 +15,7 @@ import type { DashboardSummary } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { PageShell } from "@/components/page-shell";
+import { tf } from "@/i18n";
 
 export function DashboardPage({ navigate }: { navigate: (to: string) => void }) {
   const { settings, setError } = useApp();
@@ -40,40 +41,40 @@ export function DashboardPage({ navigate }: { navigate: (to: string) => void }) 
   if (loading || !summary) {
     return (
       <div className="flex flex-1 items-center justify-center text-muted-foreground">
-        Loading dashboard…
+        {tf("dashboard.loading")}
       </div>
     );
   }
 
   return (
     <PageShell
-      title="Dashboard"
-      meta={`Snapshot of ${new Date().toLocaleDateString(undefined, { month: "long", year: "numeric" })}`}
+      title={tf("dashboard.title")}
+      meta={tf("dashboard.meta", new Date().toLocaleDateString(undefined, { month: "long", year: "numeric" }))}
     >
 
         <section className="grid grid-cols-2 gap-4 md:grid-cols-4">
           <KpiCard
-            label="Occupancy"
+            label={tf("dashboard.occupancy")}
             value={`${summary.occupancy_rate}%`}
-            sub={`${summary.occupied} of ${summary.units} units`}
+            sub={tf("common.occupied_of", summary.occupied, summary.units)}
             icon={<Home className="h-4 w-4" />}
           />
           <KpiCard
-            label="Active leases"
+            label={tf("dashboard.active_leases")}
             value={String(summary.active_leases)}
-            sub={summary.upcoming_move_outs ? `${summary.upcoming_move_outs} ending in 30 days` : "No upcoming move-outs"}
+            sub={summary.upcoming_move_outs ? tf("common.ending_in_30", summary.upcoming_move_outs) : tf("dashboard.no_move_outs")}
             icon={<ClipboardList className="h-4 w-4" />}
           />
           <KpiCard
-            label="Outstanding rent"
+            label={tf("dashboard.outstanding_rent")}
             value={formatMoney(summary.month_outstanding, settings.currency)}
-            sub={`${formatMoney(summary.month_collected, settings.currency)} collected this month`}
+            sub={tf("common.collected_this_month", formatMoney(summary.month_collected, settings.currency))}
             icon={<Receipt className="h-4 w-4" />}
           />
           <KpiCard
-            label="Open work orders"
+            label={tf("dashboard.open_work_orders")}
             value={String(summary.open_work_orders)}
-            sub={summary.urgent_work_orders ? `${summary.urgent_work_orders} urgent` : "Nothing urgent"}
+            sub={summary.urgent_work_orders ? tf("common.urgent_count", summary.urgent_work_orders) : tf("dashboard.nothing_urgent")}
             icon={<Wrench className="h-4 w-4" />}
             tone={summary.urgent_work_orders > 0 ? "warn" : "default"}
           />
@@ -82,49 +83,49 @@ export function DashboardPage({ navigate }: { navigate: (to: string) => void }) 
         <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           <Card className="p-5">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-sm font-semibold">Portfolio</h2>
+              <h2 className="text-sm font-semibold">{tf("dashboard.portfolio")}</h2>
               <button
                 type="button"
                 onClick={() => navigate("/properties")}
                 className="text-xs font-medium text-primary hover:underline"
               >
-                View all
+                {tf("common.view_all")}
               </button>
             </div>
             <dl className="space-y-3 text-sm">
-              <Row label="Properties" value={summary.properties} icon={<Building2 className="h-4 w-4" />} />
-              <Row label="Total units" value={summary.units} />
-              <Row label="Occupied" value={summary.occupied} tone="positive" />
-              <Row label="Vacant" value={summary.vacant} tone={summary.vacant > 0 ? "warn" : "default"} />
+              <Row label={tf("dashboard.properties")} value={summary.properties} icon={<Building2 className="h-4 w-4" />} />
+              <Row label={tf("dashboard.total_units")} value={summary.units} />
+              <Row label={tf("dashboard.occupied")} value={summary.occupied} tone="positive" />
+              <Row label={tf("dashboard.vacant")} value={summary.vacant} tone={summary.vacant > 0 ? "warn" : "default"} />
             </dl>
           </Card>
 
           <Card className="p-5 lg:col-span-2">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-sm font-semibold">This month's rent</h2>
+              <h2 className="text-sm font-semibold">{tf("dashboard.months_rent")}</h2>
               <button
                 type="button"
                 onClick={() => navigate("/rent")}
                 className="text-xs font-medium text-primary hover:underline"
               >
-                Open ledger
+                {tf("dashboard.open_ledger")}
               </button>
             </div>
             <div className="grid grid-cols-3 gap-4">
               <Stat
-                label="Collected"
+                label={tf("dashboard.collected")}
                 value={formatMoney(summary.month_collected, settings.currency)}
                 tone="positive"
               />
               <Stat
-                label="Outstanding"
+                label={tf("dashboard.outstanding")}
                 value={formatMoney(summary.month_outstanding, settings.currency)}
                 tone={summary.month_outstanding > 0 ? "warn" : "default"}
               />
               <Stat
-                label="Overdue"
+                label={tf("dashboard.overdue")}
                 value={formatMoney(summary.overdue_total, settings.currency)}
-                sub={summary.overdue_count ? `${summary.overdue_count} charge${summary.overdue_count === 1 ? "" : "s"}` : undefined}
+                sub={summary.overdue_count ? tf("common.overdue_count", summary.overdue_count) : undefined}
                 tone={summary.overdue_total > 0 ? "danger" : "default"}
               />
             </div>
@@ -134,17 +135,17 @@ export function DashboardPage({ navigate }: { navigate: (to: string) => void }) 
         <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <Card className="p-5">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-sm font-semibold">Open work orders</h2>
+              <h2 className="text-sm font-semibold">{tf("dashboard.open_work_orders")}</h2>
               <button
                 type="button"
                 onClick={() => navigate("/maintenance")}
                 className="text-xs font-medium text-primary hover:underline"
               >
-                View all
+                {tf("common.view_all")}
               </button>
             </div>
             {summary.recent_work_orders.length === 0 ? (
-              <Empty icon={<CheckCircle2 className="h-5 w-5" />} title="All caught up" message="No open work orders right now." />
+              <Empty icon={<CheckCircle2 className="h-5 w-5" />} title={tf("dashboard.all_caught_up")} message={tf("dashboard.no_open_wos")} />
             ) : (
               <ul className="divide-y">
                 {summary.recent_work_orders.map((w) => (
@@ -152,7 +153,7 @@ export function DashboardPage({ navigate }: { navigate: (to: string) => void }) 
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium">{w.title}</p>
                       <p className="truncate text-xs text-muted-foreground">
-                        {[w.property_name, w.unit_name].filter(Boolean).join(" · ") || "Unassigned"}
+                        {[w.property_name, w.unit_name].filter(Boolean).join(" · ") || tf("common.unassigned")}
                       </p>
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
@@ -167,17 +168,17 @@ export function DashboardPage({ navigate }: { navigate: (to: string) => void }) 
 
           <Card className="p-5">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-sm font-semibold">Lease expirations</h2>
+              <h2 className="text-sm font-semibold">{tf("dashboard.expirations")}</h2>
               <button
                 type="button"
                 onClick={() => navigate("/leases")}
                 className="text-xs font-medium text-primary hover:underline"
               >
-                View all
+                {tf("common.view_all")}
               </button>
             </div>
             {summary.upcoming_expirations.length === 0 ? (
-              <Empty icon={<CheckCircle2 className="h-5 w-5" />} title="Nothing in the next 60 days" message="No lease expirations coming up." />
+              <Empty icon={<CheckCircle2 className="h-5 w-5" />} title={tf("dashboard.nothing_60")} message={tf("dashboard.no_expirations")} />
             ) : (
               <ul className="divide-y">
                 {summary.upcoming_expirations.map((l) => {
@@ -199,7 +200,7 @@ export function DashboardPage({ navigate }: { navigate: (to: string) => void }) 
                           "text-muted-foreground",
                           days <= 14 && "text-destructive font-medium",
                         )}>
-                          {days < 0 ? "Already ended" : days === 0 ? "Today" : `in ${days} day${days === 1 ? "" : "s"}`}
+                          {days < 0 ? tf("common.already_ended") : days === 0 ? tf("common.today") : tf("common.in_days", days)}
                         </div>
                       </div>
                     </li>
@@ -325,7 +326,7 @@ function PriorityBadge({ priority }: { priority: string }) {
       map[priority] ?? map.normal,
     )}>
       {priority === "urgent" && <CircleAlert className="h-3 w-3" />}
-      {priority}
+      {tf(`priority.${priority}`)}
     </span>
   );
 }
@@ -338,5 +339,5 @@ function StatusBadge({ status }: { status: string }) {
     completed: "outline",
     cancelled: "outline",
   };
-  return <Badge variant={(map[status] ?? "secondary") as never} className="capitalize">{status.replace("_", " ")}</Badge>;
+  return <Badge variant={(map[status] ?? "secondary") as never} className="capitalize">{tf(`wo_status.${status}`)}</Badge>;
 }

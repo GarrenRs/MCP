@@ -11,14 +11,7 @@ import { UnitDialog } from "./unit-dialog";
 import { WorkOrderDialog } from "../maintenance/work-order-dialog";
 import type { Property, Unit, WorkOrder } from "@/types";
 import { PageShell } from "@/components/page-shell";
-
-const TYPE_LABEL: Record<string, string> = {
-  single_family: "Single-family",
-  multi_family: "Multi-family",
-  condo: "Condo",
-  townhouse: "Townhouse",
-  commercial: "Commercial",
-};
+import { tf } from "@/i18n";
 
 const STATUS_TONE: Record<string, string> = {
   vacant: "bg-warning-tint text-warning",
@@ -64,15 +57,15 @@ export function PropertyPage({ id, navigate }: { id: number; navigate: (to: stri
   if (loading) {
     return (
       <div className="flex flex-1 items-center justify-center text-muted-foreground">
-        Loading property…
+        {tf("properties.loading")}
       </div>
     );
   }
   if (!property) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-2">
-        <p className="text-sm text-muted-foreground">Property not found.</p>
-        <Button variant="outline" onClick={() => navigate("/properties")}>Back to properties</Button>
+        <p className="text-sm text-muted-foreground">{tf("properties.not_found")}</p>
+        <Button variant="outline" onClick={() => navigate("/properties")}>{tf("properties.back_to")}</Button>
       </div>
     );
   }
@@ -91,7 +84,7 @@ export function PropertyPage({ id, navigate }: { id: number; navigate: (to: stri
           className="inline-flex items-center gap-1.5 text-[1.375rem] font-semibold leading-tight tracking-[-0.01em] transition-colors duration-150 hover:text-muted-foreground"
         >
           <ArrowLeft className="size-4 text-muted-foreground" aria-hidden />
-          Properties
+          {tf("properties.title")}
         </button>
       }
       width="max-w-7xl"
@@ -105,39 +98,39 @@ export function PropertyPage({ id, navigate }: { id: number; navigate: (to: stri
               <div className="flex items-center gap-2">
                 <h1 className="text-[1.375rem] font-semibold leading-tight tracking-[-0.01em]">{property.name}</h1>
                 <span className="rounded-full border bg-muted/30 px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
-                  {TYPE_LABEL[property.type] ?? property.type}
+                  {tf(`property_type.${property.type}`)}
                 </span>
               </div>
-              {(property.address || property.city) && (
+              {(property.address || property.city || property.commune || property.wilaya) && (
                 <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
                   <MapPin className="h-3 w-3" />
-                  {[property.address, property.city, property.state, property.zip].filter(Boolean).join(", ")}
+                  {[property.address, property.commune, property.wilaya, property.country, property.city, property.state, property.zip].filter(Boolean).join(", ")}
                 </p>
               )}
             </div>
           </div>
           <Button variant="outline" onClick={() => setEditingProperty(true)}>
-            <Pencil className="mr-1 h-4 w-4" /> Edit property
+            <Pencil className="mr-1 h-4 w-4" /> {tf("properties.edit_title")}
           </Button>
         </header>
 
         <section className="grid grid-cols-2 gap-4 md:grid-cols-4">
-          <SummaryCard label="Units" value={String(units.length)} />
-          <SummaryCard label="Occupied" value={`${occupied}/${units.length}`} />
-          <SummaryCard label="Market rent" value={formatMoney(totalRent, app.settings.currency)} />
-          <SummaryCard label="Open work orders" value={String(openWorkOrders.length)} tone={openWorkOrders.length > 0 ? "warn" : "default"} />
+          <SummaryCard label={tf("units.summary_units")} value={String(units.length)} />
+          <SummaryCard label={tf("properties.occupied")} value={`${occupied}/${units.length}`} />
+          <SummaryCard label={tf("units.market_rent")} value={formatMoney(totalRent, app.settings.currency)} />
+          <SummaryCard label={tf("units.summary_open_wos")} value={String(openWorkOrders.length)} tone={openWorkOrders.length > 0 ? "warn" : "default"} />
         </section>
 
         <section>
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-[1.0625rem] font-semibold leading-tight">Units</h2>
+            <h2 className="text-[1.0625rem] font-semibold leading-tight">{tf("units.summary_units")}</h2>
             <Button size="sm" onClick={() => { setEditingUnit(undefined); setUnitDialogOpen(true); }}>
-              <Plus className="mr-1 h-4 w-4" /> New unit
+              <Plus className="mr-1 h-4 w-4" /> {tf("units.new")}
             </Button>
           </div>
           {units.length === 0 ? (
             <Card className="p-8 text-center text-sm text-muted-foreground">
-              No units yet. Add one to start tracking leases and rent.
+              {tf("units.no_units")}
             </Card>
           ) : (
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
@@ -147,16 +140,16 @@ export function PropertyPage({ id, navigate }: { id: number; navigate: (to: stri
                     <div>
                       <h3 className="font-semibold">{u.name}</h3>
                       <p className="mt-0.5 text-xs text-muted-foreground">
-                        {u.bedrooms} bd · {u.bathrooms} ba{u.sqft ? ` · ${u.sqft} sqft` : ""}
+                        {tf("units.bd", u.bedrooms, u.bathrooms, u.sqft ? ` · ${tf("units.sqft")}: ${u.sqft}` : "")}
                       </p>
                     </div>
                     <span className={cn("inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold capitalize", STATUS_TONE[u.status])}>
-                      {u.status}
+                      {tf(`unit_status.${u.status}`)}
                     </span>
                   </div>
                   <div className="mt-3 flex items-end justify-between border-t pt-3">
                     <div>
-                      <div className="stat-label">Market rent</div>
+                      <div className="stat-label">{tf("units.market_rent")}</div>
                       <div className="text-sm font-semibold tabular-nums">{formatMoney(u.market_rent, app.settings.currency)}</div>
                     </div>
                     {u.active_tenant_name && (
@@ -171,13 +164,13 @@ export function PropertyPage({ id, navigate }: { id: number; navigate: (to: stri
 
         <section>
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-[1.0625rem] font-semibold leading-tight">Work orders</h2>
+            <h2 className="text-[1.0625rem] font-semibold leading-tight">{tf("units.work_orders")}</h2>
             <Button size="sm" variant="outline" onClick={() => setWoDialogOpen(true)}>
-              <Plus className="mr-1 h-4 w-4" /> New work order
+              <Plus className="mr-1 h-4 w-4" /> {tf("units.new_work_order")}
             </Button>
           </div>
           {workOrders.length === 0 ? (
-            <Card className="p-8 text-center text-sm text-muted-foreground">No work orders for this property.</Card>
+            <Card className="p-8 text-center text-sm text-muted-foreground">{tf("units.no_work_orders")}</Card>
           ) : (
             <Card className="divide-y">
               {workOrders.map((w) => (
@@ -192,8 +185,8 @@ export function PropertyPage({ id, navigate }: { id: number; navigate: (to: stri
                     </div>
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
-                    <Badge variant="neutral" className="capitalize">{w.priority}</Badge>
-                    <Badge variant="secondary" className="capitalize">{w.status.replace("_", " ")}</Badge>
+                    <Badge variant="neutral" className="capitalize">{tf(`priority.${w.priority}`)}</Badge>
+                    <Badge variant="secondary" className="capitalize">{tf(`wo_status.${w.status}`)}</Badge>
                   </div>
                 </div>
               ))}

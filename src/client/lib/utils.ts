@@ -35,12 +35,19 @@ export function colorClasses(token: string | null | undefined): typeof colorPale
   return colorPalette[(token as ColorToken)] ?? colorPalette.sky;
 }
 
-/** Format an ISO date string 'YYYY-MM-DD' or full datetime to a short date label. */
+/** Format an ISO date string 'YYYY-MM-DD' or full datetime to a short date label.
+ *  The default style is dd/MM/yyyy for French locales, month-short otherwise —
+ *  callers can always pass explicit `opts` to override. */
 export function formatDate(iso: string | null | undefined, locale?: string, opts?: Intl.DateTimeFormatOptions): string {
   if (!iso) return "";
   const d = new Date(iso.length <= 10 ? `${iso}T00:00:00` : iso);
   if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString(localeOrActive(locale), opts ?? { year: "numeric", month: "short", day: "numeric" });
+  if (opts) return d.toLocaleDateString(localeOrActive(locale), opts);
+  const active = localeOrActive(locale);
+  const french = active?.toLowerCase().startsWith("fr") ?? false;
+  return d.toLocaleDateString(active, french
+    ? { day: "2-digit", month: "2-digit", year: "numeric" }
+    : { year: "numeric", month: "short", day: "numeric" });
 }
 
 /**
@@ -50,7 +57,7 @@ export function formatDate(iso: string | null | undefined, locale?: string, opts
  */
 export function formatMoney(n: number | null | undefined, currency?: string, locale?: string): string {
   if (n === null || n === undefined || Number.isNaN(n)) return "—";
-  const code = currency?.trim().toUpperCase() || "USD";
+  const code = currency?.trim().toUpperCase() || "DZD";
   const loc = localeOrActive(locale);
   // Malformed codes throw a RangeError at construction of the formatter, so
   // build it defensively and fall back to a plain locale-aware number.
