@@ -53,11 +53,18 @@ class PreparedStatement {
 export class D1Stub {
   private db: DatabaseSync;
 
-  constructor() {
+  constructor(loadSchema = true) {
     this.db = new DatabaseSync(":memory:");
     this.db.exec("PRAGMA foreign_keys = ON;");
-    const schema = readFileSync(resolve(process.cwd(), "src/server/schema.sql"), "utf8");
-    this.db.exec(schema);
+    if (loadSchema) {
+      const schema = readFileSync(resolve(process.cwd(), "src/server/schema.sql"), "utf8");
+      this.db.exec(schema);
+    }
+  }
+
+  /** Execute a multi-statement script (migration files). */
+  exec(sql: string): void {
+    this.db.exec(sql);
   }
 
   prepare(sql: string): PreparedStatement {
