@@ -10,8 +10,8 @@ SOURCE AUDIT            → complete (Docs/00–12, baseline 98bfc4a)
 DOCUMENTATION BASELINE  → complete (Docs/13–13c V1 plan)
 COMMERCIAL BRAND ARCH.  → complete (Docs/14 — ORKESTRIX Property System)
 V1 IMPLEMENTATION PLAN  → defined (P1–P12, order in Docs/13c)
-P1 TEST FOUNDATION      → NEXT (not started)
-P2 MIGRATION LEDGER     → pending
+P1 TEST FOUNDATION      → complete (Docs/execution/p1-test-foundation.md, commit b1b3b55)
+P2 MIGRATION LEDGER     → complete (Docs/execution/p2-migration-ledger.md, commit 7e97091)
 P3 I18N / SETTINGS / ERROR CODES → pending
 P4 LOCALIZATION         → pending
 P5 AUTH                 → pending
@@ -72,3 +72,5 @@ Workflows are written as **state → action → result** chains from a manager's
 | `13b-v1-implementation-plan.md` | V1 plan: phases P7–P9 |
 | `13c-v1-implementation-plan.md` | V1 plan: phases P10–P12, dependencies, recommended order, deliverables |
 | `14-brand-architecture.md` | Master brand ORKESTRIX, product naming pattern, ORKESTRIX Property System, upstream OpenProperty vs commercial identity |
+| `execution/p1-test-foundation.md` | Execution log for P1 (test foundation) — commit `b1b3b55` |
+| `execution/p2-migration-ledger.md` | Execution log for P2 (migration ledger) — commit `7e97091` |
