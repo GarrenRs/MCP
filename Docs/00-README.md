@@ -12,7 +12,7 @@ COMMERCIAL BRAND ARCH.  → complete (Docs/14 — ORKESTRIX Property System)
 V1 IMPLEMENTATION PLAN  → defined (P1–P12, order in Docs/13c)
 P1 TEST FOUNDATION      → complete (Docs/execution/p1-test-foundation.md, commit b1b3b55)
 P2 MIGRATION LEDGER     → complete (Docs/execution/p2-migration-ledger.md, commit 7e97091)
-P3 I18N / SETTINGS / ERROR CODES → pending
+P3 I18N / SETTINGS / ERROR CODES → complete (Docs/execution/p3-i18n-settings-error-codes.md, commit d431909)
 P4 LOCALIZATION         → pending
 P5 AUTH                 → pending
 P6–P12                  → pending
@@ -74,3 +74,4 @@ Workflows are written as **state → action → result** chains from a manager's
 | `14-brand-architecture.md` | Master brand ORKESTRIX, product naming pattern, ORKESTRIX Property System, upstream OpenProperty vs commercial identity |
 | `execution/p1-test-foundation.md` | Execution log for P1 (test foundation) — commit `b1b3b55` |
 | `execution/p2-migration-ledger.md` | Execution log for P2 (migration ledger) — commit `7e97091` |
+| `execution/p3-i18n-settings-error-codes.md` | Execution log for P3 (i18n / settings / error codes) — commit `d431909` |
