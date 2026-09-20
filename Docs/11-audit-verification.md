@@ -1,7 +1,12 @@
 # 11 — Audit Verification Register
 
-Consolidated triage of the audit evidence. The baseline is the working tree at commit `baseline`
+Consolidated triage of the audit evidence. The baseline is the working tree at commit `98bfc4a`
 (2026-09-20) with a clean `pnpm typecheck` and a running `pnpm dev`.
+
+> **AUTHORITATIVE PROJECT DECISION (not a source-code fact):** the commercial product identity
+> is **ORKESTRIX Property System**; **OpenProperty** is its upstream open-source foundation.
+> See `Docs/14-brand-architecture.md`. All `[VERIFIED]` statements below concern the OpenProperty
+> foundation code as observed; they make no claim about the commercial product.
 
 ## VERIFIED FACTS (observed directly)
 

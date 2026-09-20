@@ -2,6 +2,18 @@
 
 ## Product identity
 
+Identity split — see `Docs/14-brand-architecture.md` `[PROJECT DECISION]`:
+
+- **OpenProperty** — the **upstream / open-source technical foundation** this repo contains
+  (MIT-licensed, built on the Clawnify template format). This document's technical content
+  (stack, features, quick start, system map) describes the foundation as it exists at baseline.
+- **ORKESTRIX Property System** — the **commercial localized product** built from this foundation
+  (V1 target: Algerian market, French UI, DZD). OpenProperty and ORKESTRIX Property System are
+  **not the same identity**; V1 executes on this codebase but ships under the ORKESTRIX Property
+  System identity.
+
+The following foundation description is preserved verbatim from the baseline audit:
+
 - **OpenProperty** — open-source *property management software*, positioned as a self-hosted,
   cloud-based alternative to TenantCloud / AppFolio / Buildium / Propertyware for landlords,
   small property managers, and multi-family back-office teams.

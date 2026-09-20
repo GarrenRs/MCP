@@ -2,6 +2,11 @@
 
 Terms as used in this codebase and docs.
 
+## Brand `[PROJECT DECISION — see 14]`
+- **ORKESTRIX** — master brand for all commercial products.
+- **ORKESTRIX Property System** — current commercial localized product built from the OpenProperty foundation.
+- **OpenProperty** — upstream/open-source technical foundation (MIT); not the commercial product identity.
+
 ## Domain
 - **Property** — a building/complex (Portfolio root, cascades → units → leases → charges → payments).
 - **Unit** — rentable leaseable arm of a property; carries `status` (`available`/`occupied`/`maintenance`/`turnover`).

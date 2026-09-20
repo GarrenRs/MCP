@@ -1,6 +1,7 @@
 # 08 — Localization Assessment & Path
 
-Goal context: produce a localized commercial version of OpenProperty. This section is an
+Goal context: produce the localized commercial **ORKESTRIX Property System** (V1: Algerian market,
+French UI, DZD) on top of the OpenProperty foundation. This section is an
 assessment, not a change plan. `[INFERENCE]` marks interpretation of verified facts.
 
 ## Current state (survey) `[VERIFIED unless marked]`
