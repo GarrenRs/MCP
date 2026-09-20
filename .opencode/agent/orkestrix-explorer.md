@@ -1,7 +1,7 @@
 ---
 name: orkestrix-explorer
 description: Read-only exploration, repository inspection, architecture discovery, locating files/functions, understanding current implementation, identifying dependencies and risks before implementation.
-model: opencode-go/deepseek-v4-flash
+model: opencode/mimo-v2.5-free
 mode: subagent
 permission:
   read: allow

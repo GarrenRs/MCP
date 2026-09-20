@@ -1,7 +1,7 @@
 ---
 name: orkestrix-tester
 description: Run tests, typecheck, diagnose failures, reproduce bugs, inspect failing code, and propose or perform only narrowly-scoped fixes required by the active phase.
-model: opencode-go/deepseek-v4.1-flash
+model: opencode/ling-3.0-flash-fin-free
 mode: subagent
 permission:
   read: allow
