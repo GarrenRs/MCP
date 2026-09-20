@@ -18,6 +18,13 @@ export const ErrorCode = {
   invalid_body: "invalid_body",
   period_required: "period_required",
   charge_not_found: "charge_not_found",
+  unauthorized: "unauthorized",
+  forbidden: "forbidden",
+  invalid_credentials: "invalid_credentials",
+  email_taken: "email_taken",
+  bootstrap_unavailable: "bootstrap_unavailable",
+  cannot_delete_self: "cannot_delete_self",
+  cannot_modify_owner: "cannot_modify_owner",
 } as const;
 
 /** Build an error body carrying both the legacy message and the stable code. */

@@ -7,7 +7,14 @@
     "no_fields": "لم يتم توفير أي حقول",
     "invalid_body": "يجب أن يكون نص الطلب كائناً",
     "period_required": "الفترة (YYYY-MM) مطلوبة",
-    "charge_not_found": "الرسم غير موجود"
+    "charge_not_found": "الرسم غير موجود",
+    "unauthorized": "المصادقة مطلوبة",
+    "forbidden": "ليس لديك صلاحية للقيام بذلك",
+    "invalid_credentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة",
+    "email_taken": "يوجد حساب بهذا البريد الإلكتروني بالفعل",
+    "bootstrap_unavailable": "الإعداد الأولي لم يعد متاحاً",
+    "cannot_delete_self": "لا يمكنك حذف حسابك الخاص",
+    "cannot_modify_owner": "لا يمكنك تعديل حساب المالك"
   },
   "settings": {
     "title": "الإعدادات",
@@ -17,5 +24,29 @@
   "common": {
     "cancel": "إلغاء",
     "save": "حفظ التغييرات"
+  },
+  "auth": {
+    "login_title": "تسجيل الدخول",
+    "login_desc": "أدخل بيانات الاعتماد للمتابعة",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "login": "تسجيل الدخول",
+    "logout": "تسجيل الخروج",
+    "invalid_credentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة",
+    "users": "المستخدمون",
+    "users_desc": "إدارة من يمكنهم الوصول إلى النظام",
+    "add_user": "إضافة مستخدم",
+    "new_user": "مستخدم جديد",
+    "edit_user": "تعديل المستخدم",
+    "display_name": "الاسم",
+    "role": "الدور",
+    "role_owner": "المالك",
+    "role_admin": "المدير",
+    "role_manager": "المشرف",
+    "no_users": "لا يوجد مستخدمون بعد",
+    "delete_user": "حذف هذا المستخدم؟",
+    "delete_user_desc": "سيتم حذف حسابه وجلساته.",
+    "welcome": "مرحباً، {0}",
+    "logged_out": "تم تسجيل خروجك"
   }
 }

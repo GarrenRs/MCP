@@ -364,11 +364,42 @@
     "no_fields": "No fields were provided",
     "invalid_body": "The request body must be an object",
     "period_required": "A period (YYYY-MM) is required",
-    "charge_not_found": "Charge not found"
+    "charge_not_found": "Charge not found",
+    "unauthorized": "Authentication required",
+    "forbidden": "You don't have permission to do that",
+    "invalid_credentials": "Invalid email or password",
+    "email_taken": "An account with this email already exists",
+    "bootstrap_unavailable": "Bootstrap is no longer available",
+    "cannot_delete_self": "You can't delete your own account",
+    "cannot_modify_owner": "You can't modify the owner account"
   },
   "settings": {
     "title": "Settings",
     "locale": "Language",
     "currency": "Currency"
+  },
+  "auth": {
+    "login_title": "Sign in",
+    "login_desc": "Enter your credentials to continue",
+    "email": "Email",
+    "password": "Password",
+    "login": "Sign in",
+    "logout": "Sign out",
+    "invalid_credentials": "Invalid email or password",
+    "users": "Users",
+    "users_desc": "Manage who can access this system",
+    "add_user": "Add user",
+    "new_user": "New user",
+    "edit_user": "Edit user",
+    "display_name": "Name",
+    "role": "Role",
+    "role_owner": "Owner",
+    "role_admin": "Admin",
+    "role_manager": "Manager",
+    "no_users": "No users yet",
+    "delete_user": "Delete user?",
+    "delete_user_desc": "Their account and sessions will be removed.",
+    "welcome": "Welcome, {0}",
+    "logged_out": "You've been signed out"
   }
 }

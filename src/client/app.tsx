@@ -1,9 +1,11 @@
-import { useEffect } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { AppNav, reportLocation, type AppNavItem } from "@clawnify/app/client";
+import { api, setOnUnauthorized } from "./api";
 import { useAppState } from "./hooks/use-app-state";
 import { useRouter, type Route } from "./hooks/use-router";
 import { AppContext } from "./context";
 import { ErrorBanner } from "./components/error-banner";
+import { LoginPage } from "./components/auth/login-page";
 import { DashboardPage } from "./components/dashboard/dashboard-page";
 import { PropertiesList } from "./components/properties/properties-list";
 import { PropertyPage } from "./components/properties/property-page";
@@ -69,14 +71,76 @@ function activeFor(route: Route): string {
   return route.name;
 }
 
+interface SessionUser {
+  id: number;
+  email: string;
+  role: string;
+  display_name: string;
+}
+
 export function App() {
   const state = useAppState();
   const { path, route, navigate } = useRouter();
+  const [sessionUser, setSessionUser] = useState<SessionUser | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+  const [authEnabled, setAuthEnabled] = useState(false);
+
+  // Handle session expiry — redirect to login on any 401
+  useEffect(() => {
+    setOnUnauthorized(() => {
+      setSessionUser(null);
+      navigate("/login");
+    });
+  }, [navigate]);
+
+  // Check session on mount
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await api<{ user: SessionUser | null }>("GET", "/api/auth/session");
+        setSessionUser(res.user);
+      } catch {
+        // Auth not available or error — treat as disabled
+      } finally {
+        setAuthChecked(true);
+      }
+    })();
+  }, []);
+
+  // Check if auth is enabled
+  useEffect(() => {
+    if (!authChecked) return;
+    (async () => {
+      try {
+        const res = await api<{ auth_enabled: boolean; has_users: boolean }>("GET", "/api/auth/status");
+        setAuthEnabled(res.auth_enabled);
+      } catch {
+        // Auth endpoint not available — treat as disabled
+      }
+    })();
+  }, [authChecked]);
+
+  const handleLogout = useCallback(async () => {
+    try { await api("POST", "/api/auth/logout"); } catch { /* ignore */ }
+    setSessionUser(null);
+    navigate("/login");
+  }, [navigate]);
+
+  const handleLogin = useCallback((user: SessionUser) => {
+    setSessionUser(user);
+    setAuthEnabled(true);
+    navigate("/dashboard");
+  }, [navigate]);
 
   // Lets the dashboard restore this exact screen on reload.
   useEffect(() => {
     reportLocation(path);
   }, [path]);
+
+  // Show login page if auth enabled and not logged in
+  if (authChecked && authEnabled && !sessionUser && route.name !== "login") {
+    return <LoginPage onLogin={handleLogin} />;
+  }
 
   const groups = localizeNav([
     { items: PORTFOLIO },
@@ -87,9 +151,6 @@ export function App() {
   return (
     <AppContext.Provider value={state}>
       <div className="flex h-screen min-h-0 flex-col overflow-hidden bg-background text-foreground md:flex-row">
-        {/* flex, so the SDK's <aside> stretches to the row height as a direct
-            child would. Below md the SDK lays it out as a scrolling strip, which
-            the flex-col above puts ABOVE the content rather than beside it. */}
         <div className="flex shrink-0">
           <AppNav
             title={t("app.brand")}
@@ -97,7 +158,14 @@ export function App() {
             groups={groups}
             active={activeFor(route)}
             onNavigate={(item) => navigate(item.href ?? "/dashboard")}
-          />
+          >
+            {authEnabled && sessionUser && (
+              <div className="flex flex-col gap-1 p-2 text-xs text-muted-foreground">
+                <span>{sessionUser.email}</span>
+                <button className="text-left hover:underline" onClick={handleLogout}>{t("auth.logout")}</button>
+              </div>
+            )}
+          </AppNav>
         </div>
         <main className="flex min-w-0 flex-1 flex-col overflow-hidden">
           {state.loading ? (
@@ -106,6 +174,7 @@ export function App() {
             </div>
           ) : (
             <>
+              {route.name === "login" && <LoginPage onLogin={handleLogin} />}
               {route.name === "dashboard" && <DashboardPage navigate={navigate} />}
               {route.name === "properties" && <PropertiesList navigate={navigate} />}
               {route.name === "property" && <PropertyPage id={route.id} navigate={navigate} />}
@@ -114,7 +183,7 @@ export function App() {
               {route.name === "leases" && <LeasesPage navigate={navigate} />}
               {route.name === "rent" && <RentPage />}
               {route.name === "maintenance" && <MaintenancePage />}
-              {route.name === "settings" && <SettingsPage />}
+              {route.name === "settings" && <SettingsPage currentUserRole={sessionUser?.role} />}
               {route.name === "not-found" && (
                 <Placeholder title={t("app.not_found_title")} message={t("app.not_found_msg")} />
               )}

@@ -21,12 +21,13 @@ import { Textarea } from "@/components/ui/textarea";
 import type { Vendor, VendorCategory } from "@/types";
 import { PageShell } from "@/components/page-shell";
 import { t, tf } from "@/i18n";
+import { UsersTab } from "./users-tab";
 
 const COLORS = ["sky", "emerald", "amber", "rose", "violet", "fuchsia", "teal", "orange", "slate"];
 
 const VENDOR_CATEGORIES: VendorCategory[] = ["plumber", "electrician", "hvac", "handyman", "cleaning", "landscaping", "general"];
 
-export function SettingsPage() {
+export function SettingsPage({ currentUserRole }: { currentUserRole?: string }) {
   return (
     <PageShell
       title={tf("vendors.title")}
@@ -38,6 +39,9 @@ export function SettingsPage() {
           <TabsList>
             <TabsTrigger value="vendors">{tf("vendors.tab_vendors")}</TabsTrigger>
             <TabsTrigger value="policy">{tf("vendors.tab_policy")}</TabsTrigger>
+            {(currentUserRole === "owner" || currentUserRole === "admin") && (
+              <TabsTrigger value="users">{t("auth.users")}</TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="vendors" className="mt-4">
@@ -45,6 +49,9 @@ export function SettingsPage() {
           </TabsContent>
           <TabsContent value="policy" className="mt-4">
             <PolicyTab />
+          </TabsContent>
+          <TabsContent value="users" className="mt-4">
+            <UsersTab currentUserRole={currentUserRole ?? "manager"} />
           </TabsContent>
         </Tabs>
     </PageShell>

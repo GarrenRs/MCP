@@ -8,8 +8,24 @@ import {
   isChargeOverdue,
   planChargeGeneration,
 } from "./finance";
+import {
+  hashPassword,
+  verifyPassword,
+  createSession,
+  getSessionFromToken,
+  deleteSessionByToken,
+  deleteUserSessions,
+  parseCookieHeader,
+  setSessionCookie,
+  clearSessionCookie,
+  hasMinimumRole,
+  isAuthEnabled,
+  resetAuthCache,
+  isSecureRequest,
+} from "./auth";
+import type { SessionUser } from "./auth";
 
-type Env = { Bindings: { DB: D1Database } };
+type Env = { Bindings: { DB: D1Database }; Variables: { user: SessionUser | null } };
 
 const app = new Hono<Env>();
 
@@ -17,6 +33,127 @@ app.use("*", async (c, next) => {
   initDB(c.env);
   await ensureSeeded();
   await next();
+});
+
+// ── Auth middleware ─────────────────────────────────────────────────
+// Runs after DB init, before route handlers. Skips public routes and
+// respects the AUTH_ENABLED feature flag for easy rollback.
+
+app.use("/api/*", async (c, next) => {
+  const path = c.req.path;
+  // Public routes — never require auth
+  if (path === "/api/health" || path === "/api/auth/login" || path === "/api/auth/logout" || path === "/api/auth/session" || path === "/api/auth/bootstrap" || path === "/api/auth/status") {
+    c.set("user", null);
+    return next();
+  }
+  // Feature flag check — when disabled, don't enforce auth but still resolve session if present
+  if (!(await isAuthEnabled())) {
+    const token = parseCookieHeader(c.req.header("cookie"), "session_token");
+    if (token) {
+      const user = await getSessionFromToken(token);
+      c.set("user", user);
+    } else {
+      c.set("user", null);
+    }
+    return next();
+  }
+  // Session check
+  const token = parseCookieHeader(c.req.header("cookie"), "session_token");
+  if (!token) {
+    c.set("user", null);
+    return c.json(err(ErrorCode.unauthorized, "Authentication required"), 401);
+  }
+  const user = await getSessionFromToken(token);
+  if (!user) {
+    c.set("user", null);
+    return c.json(err(ErrorCode.unauthorized, "Invalid or expired session"), 401);
+  }
+  c.set("user", user);
+  return next();
+});
+
+// ── Auth routes (public) ──────────────────────────────────────────
+// POST /api/auth/login    — create session
+// POST /api/auth/logout   — destroy session
+// GET  /api/auth/session  — return current user
+// POST /api/auth/bootstrap — create first owner (only when no users exist)
+
+const LoginInput = z.object({
+  email: z.string().email(),
+  password: z.string().min(1),
+});
+
+app.post("/api/auth/login", async (c) => {
+  const parsed = await parseJson(c, LoginInput);
+  if (!parsed.ok) return c.json(err(parsed.code, parsed.error), 400);
+  const { email, password } = parsed.data;
+  const user = await get<{ id: number; password_hash: string; role: string; display_name: string }>(
+    "SELECT id, password_hash, role, display_name FROM users WHERE email = ?",
+    [email.toLowerCase().trim()],
+  );
+  if (!user || !(await verifyPassword(password, user.password_hash))) {
+    return c.json(err(ErrorCode.invalid_credentials, "Invalid email or password"), 401);
+  }
+  const secure = isSecureRequest(c.req);
+  const { token, expiresAt } = await createSession(user.id);
+  c.header("Set-Cookie", setSessionCookie(token, expiresAt, secure));
+  return c.json({
+    user: { id: user.id, email: email.toLowerCase().trim(), role: user.role, display_name: user.display_name },
+  });
+});
+
+app.post("/api/auth/logout", async (c) => {
+  const token = parseCookieHeader(c.req.header("cookie"), "session_token");
+  if (token) await deleteSessionByToken(token);
+  const secure = isSecureRequest(c.req);
+  c.header("Set-Cookie", clearSessionCookie(secure));
+  return c.json({ ok: true });
+});
+
+app.get("/api/auth/session", async (c) => {
+  const token = parseCookieHeader(c.req.header("cookie"), "session_token");
+  if (!token) return c.json({ user: null });
+  const user = await getSessionFromToken(token);
+  if (!user) return c.json({ user: null });
+  return c.json({ user: { id: user.userId, email: user.email, role: user.role, display_name: user.display_name } });
+});
+
+const BootstrapInput = z.object({
+  email: z.string().email(),
+  password: z.string().min(8),
+  display_name: z.string().min(1),
+});
+
+app.post("/api/auth/bootstrap", async (c) => {
+  const parsed = await parseJson(c, BootstrapInput);
+  if (!parsed.ok) return c.json(err(parsed.code, parsed.error), 400);
+  const { email, password, display_name } = parsed.data;
+  const password_hash = await hashPassword(password);
+  // Atomic: INSERT only if no users exist (prevents race condition)
+  const result = await run(
+    `INSERT INTO users (email, password_hash, display_name, role)
+     SELECT ?, ?, ?, 'owner'
+     WHERE NOT EXISTS (SELECT 1 FROM users LIMIT 1)`,
+    [email.toLowerCase().trim(), password_hash, display_name.trim()],
+  );
+  if (result.changes === 0) {
+    return c.json(err(ErrorCode.bootstrap_unavailable, "Bootstrap is no longer available"), 409);
+  }
+  const user = await get<{ id: number; email: string; role: string; display_name: string }>(
+    "SELECT id, email, role, display_name FROM users WHERE id = ?",
+    [result.lastInsertRowid],
+  );
+  // Auto-login after bootstrap
+  const secure = isSecureRequest(c.req);
+  const { token, expiresAt } = await createSession(user!.id);
+  c.header("Set-Cookie", setSessionCookie(token, expiresAt, secure));
+  return c.json({ user }, 201);
+});
+
+app.get("/api/auth/status", async (c) => {
+  const enabled = await isAuthEnabled();
+  const count = await get<{ n: number }>("SELECT COUNT(*) as n FROM users");
+  return c.json({ auth_enabled: enabled, has_users: (count?.n ?? 0) > 0 });
 });
 
 // ── First-run data ─────────────────────────────────────────────────
@@ -98,6 +235,7 @@ async function ensureSeeded(): Promise<void> {
     // yet: the next request retries. Never fail a request over sample data.
     seeded = false;
   }
+  resetAuthCache();
 }
 
 // ── Helpers ────────────────────────────────────────────────────────
@@ -945,6 +1083,12 @@ app.get("/api/settings", async (c) => {
 });
 
 app.put("/api/settings", async (c) => {
+  const user = c.get("user");
+  const authEnabled = await isAuthEnabled();
+  // When auth is enabled, only admin/owner can update settings
+  if (authEnabled && (!user || !hasMinimumRole(user.role, "admin"))) {
+    return c.json(err(ErrorCode.forbidden, "Forbidden"), 403);
+  }
   let body: unknown;
   try { body = await c.req.json(); } catch { return c.json(err(ErrorCode.invalid_json, "Invalid JSON"), 400); }
   if (!body || typeof body !== "object") return c.json(err(ErrorCode.invalid_body, "Body must be an object"), 400);
@@ -956,10 +1100,113 @@ app.put("/api/settings", async (c) => {
       [key, String(value)],
     );
   }
+  if (entries.some(([k]) => k === "AUTH_ENABLED")) resetAuthCache();
   const rows = await query<{ key: string; value: string }>("SELECT key, value FROM settings");
   const out: Record<string, string> = { ...DEFAULT_SETTINGS };
   for (const r of rows) out[r.key] = r.value;
   return c.json({ settings: out });
+});
+
+// ── User management (owner + admin) ──────────────────────────────
+
+app.get("/api/users", async (c) => {
+  const user = c.get("user");
+  if (!user || !hasMinimumRole(user.role, "admin")) {
+    return c.json(err(ErrorCode.forbidden, "Forbidden"), 403);
+  }
+  const rows = await query<{ id: number; email: string; display_name: string; role: string; created_at: string }>(
+    "SELECT id, email, display_name, role, created_at FROM users ORDER BY created_at",
+  );
+  return c.json({ users: rows });
+});
+
+const CreateUserInput = z.object({
+  email: z.string().email(),
+  password: z.string().min(8),
+  display_name: z.string().min(1),
+  role: z.enum(["owner", "admin", "manager"]),
+});
+
+app.post("/api/users", async (c) => {
+  const user = c.get("user");
+  if (!user || !hasMinimumRole(user.role, "admin")) {
+    return c.json(err(ErrorCode.forbidden, "Forbidden"), 403);
+  }
+  const parsed = await parseJson(c, CreateUserInput);
+  if (!parsed.ok) return c.json(err(parsed.code, parsed.error), 400);
+  const { email, password, display_name, role } = parsed.data;
+  // Only owners can create other owners
+  if (role === "owner" && user.role !== "owner") {
+    return c.json(err(ErrorCode.forbidden, "Only owners can create owner accounts"), 403);
+  }
+  const existing = await get<{ id: number }>("SELECT id FROM users WHERE email = ?", [email.toLowerCase().trim()]);
+  if (existing) return c.json(err(ErrorCode.email_taken, "Email already in use"), 409);
+  const password_hash = await hashPassword(password);
+  const result = await run(
+    "INSERT INTO users (email, password_hash, display_name, role) VALUES (?, ?, ?, ?)",
+    [email.toLowerCase().trim(), password_hash, display_name.trim(), role],
+  );
+  const created = await get<{ id: number; email: string; display_name: string; role: string; created_at: string }>(
+    "SELECT id, email, display_name, role, created_at FROM users WHERE id = ?",
+    [result.lastInsertRowid],
+  );
+  return c.json({ user: created }, 201);
+});
+
+const UpdateUserInput = z.object({
+  display_name: z.string().min(1).optional(),
+  role: z.enum(["owner", "admin", "manager"]).optional(),
+  password: z.string().min(8).optional(),
+});
+
+app.put("/api/users/:id", async (c) => {
+  const caller = c.get("user");
+  if (!caller || !hasMinimumRole(caller.role, "admin")) {
+    return c.json(err(ErrorCode.forbidden, "Forbidden"), 403);
+  }
+  const id = intParam(c.req.param("id"));
+  if (!id) return c.json(err(ErrorCode.invalid_id, "Invalid ID"), 400);
+  const target = await get<{ id: number; role: string }>("SELECT id, role FROM users WHERE id = ?", [id]);
+  if (!target) return c.json(err(ErrorCode.not_found, "Not found"), 404);
+  // Non-owners cannot modify owner accounts
+  if (target.role === "owner" && caller.role !== "owner") {
+    return c.json(err(ErrorCode.cannot_modify_owner, "Cannot modify owner account"), 403);
+  }
+  const parsed = await parseJson(c, UpdateUserInput);
+  if (!parsed.ok) return c.json(err(parsed.code, parsed.error), 400);
+  const { display_name, role, password } = parsed.data;
+  // Only owners can assign owner role
+  if (role === "owner" && caller.role !== "owner") {
+    return c.json(err(ErrorCode.forbidden, "Only owners can assign owner role"), 403);
+  }
+  const updates: string[] = [];
+  const params: unknown[] = [];
+  if (display_name !== undefined) { updates.push("display_name = ?"); params.push(display_name.trim()); }
+  if (role !== undefined) { updates.push("role = ?"); params.push(role); }
+  if (password !== undefined) { updates.push("password_hash = ?"); params.push(await hashPassword(password)); }
+  if (!updates.length) return c.json(err(ErrorCode.no_fields, "No fields"), 400);
+  params.push(id);
+  await run(`UPDATE users SET ${updates.join(", ")} WHERE id = ?`, params);
+  if (role) await deleteUserSessions(id);
+  const updated = await get<{ id: number; email: string; display_name: string; role: string; created_at: string }>(
+    "SELECT id, email, display_name, role, created_at FROM users WHERE id = ?", [id],
+  );
+  return c.json({ user: updated });
+});
+
+app.delete("/api/users/:id", async (c) => {
+  const caller = c.get("user");
+  if (!caller || caller.role !== "owner") {
+    return c.json(err(ErrorCode.forbidden, "Only owners can delete users"), 403);
+  }
+  const id = intParam(c.req.param("id"));
+  if (!id) return c.json(err(ErrorCode.invalid_id, "Invalid ID"), 400);
+  if (id === caller.userId) return c.json(err(ErrorCode.cannot_delete_self, "Cannot delete your own account"), 409);
+  const target = await get<{ id: number }>("SELECT id FROM users WHERE id = ?", [id]);
+  if (!target) return c.json(err(ErrorCode.not_found, "Not found"), 404);
+  await deleteUserSessions(id);
+  await run("DELETE FROM users WHERE id = ?", [id]);
+  return c.json({ ok: true });
 });
 
 // ── Health ─────────────────────────────────────────────────────────
@@ -973,4 +1220,5 @@ export default app;
 // way back to false).
 export function resetSeedForTests(): void {
   seeded = false;
+  resetAuthCache();
 }

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 
 export type Route =
+  | { name: "login" }
   | { name: "dashboard" }
   | { name: "properties" }
   | { name: "property"; id: number }
@@ -13,6 +14,7 @@ export type Route =
   | { name: "not-found" };
 
 function parse(path: string): Route {
+  if (path === "/login") return { name: "login" };
   if (path === "/" || path === "/dashboard") return { name: "dashboard" };
   if (path === "/properties") return { name: "properties" };
   let m = path.match(/^\/properties\/(\d+)$/);

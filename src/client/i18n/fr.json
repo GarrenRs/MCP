@@ -364,11 +364,42 @@
     "no_fields": "Aucun champ n'a été fourni",
     "invalid_body": "Le corps de la requête doit être un objet",
     "period_required": "Une période (AAAA-MM) est requise",
-    "charge_not_found": "Charge introuvable"
+    "charge_not_found": "Charge introuvable",
+    "unauthorized": "Authentification requise",
+    "forbidden": "Vous n'avez pas la permission",
+    "invalid_credentials": "E-mail ou mot de passe incorrect",
+    "email_taken": "Un compte avec cet e-mail existe déjà",
+    "bootstrap_unavailable": "L'initialisation n'est plus disponible",
+    "cannot_delete_self": "Vous ne pouvez pas supprimer votre propre compte",
+    "cannot_modify_owner": "Vous ne pouvez pas modifier le compte propriétaire"
   },
   "settings": {
     "title": "Paramètres",
     "locale": "Langue",
     "currency": "Devise"
+  },
+  "auth": {
+    "login_title": "Connexion",
+    "login_desc": "Entrez vos identifiants pour continuer",
+    "email": "E-mail",
+    "password": "Mot de passe",
+    "login": "Se connecter",
+    "logout": "Se déconnecter",
+    "invalid_credentials": "E-mail ou mot de passe incorrect",
+    "users": "Utilisateurs",
+    "users_desc": "Gérer l'accès au système",
+    "add_user": "Ajouter un utilisateur",
+    "new_user": "Nouvel utilisateur",
+    "edit_user": "Modifier l'utilisateur",
+    "display_name": "Nom",
+    "role": "Rôle",
+    "role_owner": "Propriétaire",
+    "role_admin": "Administrateur",
+    "role_manager": "Gestionnaire",
+    "no_users": "Aucun utilisateur",
+    "delete_user": "Supprimer cet utilisateur ?",
+    "delete_user_desc": "Son compte et ses sessions seront supprimés.",
+    "welcome": "Bienvenue, {0}",
+    "logged_out": "Vous avez été déconnecté"
   }
 }

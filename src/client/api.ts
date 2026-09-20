@@ -12,8 +12,14 @@ export class ApiError extends Error {
   }
 }
 
+let onUnauthorized: (() => void) | null = null;
+
+export function setOnUnauthorized(handler: () => void): void {
+  onUnauthorized = handler;
+}
+
 export async function api<T>(method: string, path: string, body?: unknown): Promise<T> {
-  const opts: RequestInit = { method, headers: {} };
+  const opts: RequestInit = { method, headers: {}, credentials: "include" };
   if (body !== undefined) {
     (opts.headers as Record<string, string>)["Content-Type"] = "application/json";
     opts.body = JSON.stringify(body);
@@ -26,6 +32,9 @@ export async function api<T>(method: string, path: string, body?: unknown): Prom
     /* empty body */
   }
   if (!r.ok) {
+    if (r.status === 401 && onUnauthorized) {
+      onUnauthorized();
+    }
     const { error, code } = (data as { error?: string; code?: string } | null) ?? {};
     const fallback = error || `${r.status} ${r.statusText}`;
     throw new ApiError(r.status, resolveErrorMessage(code, fallback), code);
