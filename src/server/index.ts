@@ -1,6 +1,12 @@
 import { Hono, type Context } from "hono";
 import { z } from "zod";
 import { initDB, query, get, run } from "./db";
+import {
+  computeChargeStatus,
+  currentUtcDate,
+  isChargeOverdue,
+  planChargeGeneration,
+} from "./finance";
 
 type Env = { Bindings: { DB: D1Database } };
 
@@ -502,28 +508,28 @@ app.post("/api/rent-charges/generate", async (c) => {
   const body = await c.req.json().catch(() => ({})) as { period?: string };
   const period = body.period;
   if (!period || !/^\d{4}-\d{2}$/.test(period)) return c.json({ error: "period (YYYY-MM) required" }, 400);
-  const leases = await query<{ id: number; monthly_rent: number; rent_due_day: number; start_date: string; end_date: string }>(
-    "SELECT id, monthly_rent, rent_due_day, start_date, end_date FROM leases WHERE status = 'active'",
+  const leases = await query<{ id: number; monthly_rent: number; rent_due_day: number; end_date: string }>(
+    "SELECT id, monthly_rent, rent_due_day, end_date FROM leases WHERE status = 'active'",
   );
   let created = 0;
-  for (const l of leases) {
-    // Skip if the lease doesn't cover this period at all.
-    const periodStart = `${period}-01`;
-    if (l.end_date < periodStart) continue;
-    const day = String(Math.min(28, Math.max(1, l.rent_due_day))).padStart(2, "0");
-    const dueDate = `${period}-${day}`;
+  for (const plan of planChargeGeneration(leases, period)) {
     const r = await run(
       `INSERT INTO rent_charges (lease_id, period, due_date, amount) VALUES (?, ?, ?, ?)
          ON CONFLICT(lease_id, period) DO NOTHING`,
-      [l.id, period, dueDate, l.monthly_rent],
+      [plan.lease_id, plan.period, plan.due_date, plan.amount],
     );
     if (r.changes) created++;
   }
   // Re-mark anything past due as 'overdue'.
-  await run(
-    `UPDATE rent_charges SET status = 'overdue'
-     WHERE status IN ('open', 'partial') AND amount_paid < amount AND due_date < date('now')`,
+  const today = currentUtcDate();
+  const outstanding = await query<{ id: number; amount: number; amount_paid: number; due_date: string; status: string }>(
+    "SELECT id, amount, amount_paid, due_date, status FROM rent_charges WHERE status IN ('open', 'partial')",
   );
+  for (const charge of outstanding) {
+    if (isChargeOverdue(charge, today)) {
+      await run("UPDATE rent_charges SET status = 'overdue' WHERE id = ?", [charge.id]);
+    }
+  }
   return c.json({ created, period });
 });
 
@@ -585,7 +591,7 @@ app.post("/api/payments", async (c) => {
   if (!charge) return c.json({ error: "Charge not found" }, 404);
   const sumRow = await get<{ total: number }>("SELECT COALESCE(SUM(amount), 0) as total FROM payments WHERE charge_id = ?", [d.charge_id]);
   const paid = Number(sumRow?.total ?? 0);
-  const status = paid >= charge.amount ? "paid" : paid > 0 ? "partial" : "open";
+  const status = computeChargeStatus(charge.amount, paid);
   await run("UPDATE rent_charges SET amount_paid = ?, status = ? WHERE id = ?", [paid, status, d.charge_id]);
   const updated = await get(`${CHARGE_SELECT} WHERE c.id = ?`, [d.charge_id]);
   return c.json({ charge: updated }, 201);
@@ -601,7 +607,7 @@ app.delete("/api/payments/:id", async (c) => {
   const sumRow = await get<{ total: number }>("SELECT COALESCE(SUM(amount), 0) as total FROM payments WHERE charge_id = ?", [row.charge_id]);
   const charge = await get<{ amount: number }>("SELECT amount FROM rent_charges WHERE id = ?", [row.charge_id]);
   const paid = Number(sumRow?.total ?? 0);
-  const status = !charge ? "open" : paid >= charge.amount ? "paid" : paid > 0 ? "partial" : "open";
+  const status = !charge ? "open" : computeChargeStatus(charge.amount, paid);
   await run("UPDATE rent_charges SET amount_paid = ?, status = ? WHERE id = ?", [paid, status, row.charge_id]);
   return c.json({ ok: true });
 });
@@ -947,3 +953,10 @@ app.put("/api/settings", async (c) => {
 app.get("/api/health", (c) => c.json({ ok: true }));
 
 export default app;
+
+// Test hook: lets integration tests start from an unseeded database (Vitest
+// runs each test in the same module instance, so the fast-path flag needs a
+// way back to false).
+export function resetSeedForTests(): void {
+  seeded = false;
+}
