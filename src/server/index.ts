@@ -626,7 +626,31 @@ const CHARGE_SELECT = `
   LEFT JOIN tenants t ON t.id = l.primary_tenant_id
 `;
 
+// ── Overdue freshness ──────────────────────────────────────────────
+// Shared read-path refresh: any open/partial charge that is past its due date
+// with an outstanding balance is persisted as 'overdue'. Paid and waived
+// charges are never touched. Idempotent — already-correct statuses are not
+// rewritten, so repeated reads are harmless and produce no extra writes. The
+// status guard on the write also makes concurrent payment updates safe: if a
+// payment already set the charge 'paid'/'waived' between our read and write,
+// the update no-ops instead of overwriting it back to 'overdue'.
+async function markOverdue(): Promise<void> {
+  const today = currentUtcDate();
+  const candidates = await query<{ id: number; amount: number; amount_paid: number; due_date: string; status: string }>(
+    "SELECT id, amount, amount_paid, due_date, status FROM rent_charges WHERE status IN ('open', 'partial')",
+  );
+  for (const charge of candidates) {
+    if (isChargeOverdue(charge, today)) {
+      await run(
+        "UPDATE rent_charges SET status = 'overdue' WHERE id = ? AND status IN ('open', 'partial')",
+        [charge.id],
+      );
+    }
+  }
+}
+
 app.get("/api/rent-charges", async (c) => {
+  await markOverdue();
   const period = c.req.query("period");
   const status = c.req.query("status");
   const where: string[] = [];
@@ -673,15 +697,7 @@ app.post("/api/rent-charges/generate", async (c) => {
     if (r.changes) created++;
   }
   // Re-mark anything past due as 'overdue'.
-  const today = currentUtcDate();
-  const outstanding = await query<{ id: number; amount: number; amount_paid: number; due_date: string; status: string }>(
-    "SELECT id, amount, amount_paid, due_date, status FROM rent_charges WHERE status IN ('open', 'partial')",
-  );
-  for (const charge of outstanding) {
-    if (isChargeOverdue(charge, today)) {
-      await run("UPDATE rent_charges SET status = 'overdue' WHERE id = ?", [charge.id]);
-    }
-  }
+  await markOverdue();
   return c.json({ created, period });
 });
 
@@ -1021,6 +1037,8 @@ app.delete("/api/applications/:id", async (c) => {
 // ── Dashboard summary ──────────────────────────────────────────────
 
 app.get("/api/dashboard/summary", async (c) => {
+  // Refresh overdue states first so summary metrics reflect current statuses.
+  await markOverdue().catch(() => undefined);
   const today = new Date().toISOString().slice(0, 10);
   const periodNow = today.slice(0, 7);
 
