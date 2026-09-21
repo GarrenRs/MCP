@@ -401,5 +401,20 @@
     "delete_user_desc": "Son compte et ses sessions seront supprimés.",
     "welcome": "Bienvenue, {0}",
     "logged_out": "Vous avez été déconnecté"
+  },
+  "charge_edit": {
+    "title": "Modifier la charge",
+    "amount": "Montant",
+    "due_date": "Date d'échéance",
+    "status": "Statut",
+    "notes": "Notes",
+    "paid_warning": "Cette charge a été payée. La modification peut affecter les enregistrements financiers.",
+    "waived_note": "Les charges abandonnées sont exclues des calculs de retard et de recouvrement.",
+    "waived_confirm_title": "Abandonner cette charge ?",
+    "waived_confirm_desc": "La charge sera marquée comme abandonnée et exclue des calculs de retard et de recouvrement. Cette action peut être annulée en modifiant le statut.",
+    "waived_confirm": "Abandonner la charge",
+    "paid_change_title": "Changer le statut de payé ?",
+    "paid_change_desc": "Cette charge a des paiements enregistrés. Le changement de statut peut affecter la cohérence financière.",
+    "paid_change_confirm": "Continuer"
   }
 }

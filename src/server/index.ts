@@ -701,6 +701,31 @@ app.put("/api/rent-charges/:id", async (c) => {
   params.push(id);
   const r = await run(`UPDATE rent_charges SET ${sets.join(", ")} WHERE id = ?`, params);
   if (!r.changes) return c.json(err(ErrorCode.not_found, "Not found"), 404);
+
+  // ── Financial recomputation after edit ──────────────────────────
+  // Recompute amount_paid from existing payments (payments are never mutated).
+  const charge = await get<{ amount: number; status: string; due_date: string }>("SELECT amount, status, due_date FROM rent_charges WHERE id = ?", [id]);
+  if (charge) {
+    const sumRow = await get<{ total: number }>("SELECT COALESCE(SUM(amount), 0) as total FROM payments WHERE charge_id = ?", [id]);
+    const paid = sumRow?.total ?? 0;
+    let newStatus = charge.status;
+
+    if (charge.status === "waived") {
+      // Waived charges keep their status — no auto-recompute.
+    } else {
+      // Derive status from payment state using existing business rules.
+      newStatus = computeChargeStatus(charge.amount, paid);
+      // Check overdue rule for open/partial charges.
+      if (newStatus !== "paid") {
+        const today = currentUtcDate();
+        if (isChargeOverdue({ amount: charge.amount, amount_paid: paid, due_date: charge.due_date, status: newStatus }, today)) {
+          newStatus = "overdue";
+        }
+      }
+    }
+    await run("UPDATE rent_charges SET amount_paid = ?, status = ? WHERE id = ?", [paid, newStatus, id]);
+  }
+
   const row = await get(`${CHARGE_SELECT} WHERE c.id = ?`, [id]);
   return c.json({ charge: row });
 });

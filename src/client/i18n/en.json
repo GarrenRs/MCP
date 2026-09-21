@@ -401,5 +401,20 @@
     "delete_user_desc": "Their account and sessions will be removed.",
     "welcome": "Welcome, {0}",
     "logged_out": "You've been signed out"
+  },
+  "charge_edit": {
+    "title": "Edit charge",
+    "amount": "Amount",
+    "due_date": "Due date",
+    "status": "Status",
+    "notes": "Notes",
+    "paid_warning": "This charge has been paid. Editing may affect financial records.",
+    "waived_note": "Waived charges are excluded from overdue and collection calculations.",
+    "waived_confirm_title": "Waive this charge?",
+    "waived_confirm_desc": "The charge will be marked as waived and excluded from overdue and collection calculations. This action can be reversed by editing the status.",
+    "waived_confirm": "Waive charge",
+    "paid_change_title": "Change status from paid?",
+    "paid_change_desc": "This charge has payments recorded. Changing the status may affect financial consistency.",
+    "paid_change_confirm": "Continue"
   }
 }

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, Receipt, Sparkles } from "lucide-react";
+import { ChevronLeft, ChevronRight, Pencil, Receipt, Sparkles } from "lucide-react";
 import { useApp } from "@/context";
 import { addMonths, cn, currentPeriod, formatDate, formatMoney, formatPeriod } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PaymentDialog } from "./payment-dialog";
+import { ChargeEditDialog } from "./charge-edit-dialog";
 import type { ChargeStatus, RentCharge } from "@/types";
 import { PageShell } from "@/components/page-shell";
 import { tf } from "@/i18n";
@@ -25,6 +26,7 @@ export function RentPage() {
   const [charges, setCharges] = useState<RentCharge[]>([]);
   const [loading, setLoading] = useState(true);
   const [paymentTarget, setPaymentTarget] = useState<RentCharge | null>(null);
+  const [editTarget, setEditTarget] = useState<RentCharge | null>(null);
   const [generating, setGenerating] = useState(false);
 
   async function load() {
@@ -182,16 +184,21 @@ export function RentPage() {
                         </span>
                       </TableCell>
                       <TableCell>
-                        {c.status !== "paid" && c.status !== "waived" && (
-                          <Button size="sm" variant="outline" onClick={() => setPaymentTarget(c)}>
-                            {tf("rent.record_payment")}
+                        <div className="flex items-center gap-1">
+                          <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setEditTarget(c)}>
+                            <Pencil className="h-3.5 w-3.5" />
                           </Button>
-                        )}
-                        {(c.status === "paid" || c.amount_paid > 0) && (
-                          <Button size="sm" variant="ghost" onClick={() => setPaymentTarget(c)}>
-                            {tf("rent.view")}
-                          </Button>
-                        )}
+                          {c.status !== "paid" && c.status !== "waived" && (
+                            <Button size="sm" variant="outline" onClick={() => setPaymentTarget(c)}>
+                              {tf("rent.record_payment")}
+                            </Button>
+                          )}
+                          {(c.status === "paid" || c.amount_paid > 0) && (
+                            <Button size="sm" variant="ghost" onClick={() => setPaymentTarget(c)}>
+                              {tf("rent.view")}
+                            </Button>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   );
@@ -205,6 +212,12 @@ export function RentPage() {
         open={paymentTarget !== null}
         onOpenChange={(o) => { if (!o) setPaymentTarget(null); }}
         charge={paymentTarget}
+        onSaved={load}
+      />
+      <ChargeEditDialog
+        open={editTarget !== null}
+        onOpenChange={(o) => { if (!o) setEditTarget(null); }}
+        charge={editTarget}
         onSaved={load}
       />
     </PageShell>
