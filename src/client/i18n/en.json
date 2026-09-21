@@ -318,7 +318,8 @@
     "empty_desc": "Track repairs and turnover work for your properties.",
     "no_match": "No work orders match this filter.",
     "scheduled": "Scheduled {0}",
-    "created": "Created {0}"
+    "created": "Created {0}",
+    "completed_on": "Completed {0}"
   },
   "work_order": {
     "edit_title": "Edit work order",
@@ -331,7 +332,8 @@
     "cost": "Cost",
     "vendor": "Vendor",
     "delete_desc": "Its history and notes go with it. This cannot be undone.",
-    "delete_title": "Delete this work order?"
+    "delete_title": "Delete this work order?",
+    "completed_on": "Completed on {0}"
   },
   "vendors": {
     "title": "Vendors",

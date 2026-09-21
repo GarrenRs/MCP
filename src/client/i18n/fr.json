@@ -318,7 +318,8 @@
     "empty_desc": "Suivez les réparations et les travaux pour vos biens.",
     "no_match": "Aucun ordre de travail ne correspond à ce filtre.",
     "scheduled": "Prévu le {0}",
-    "created": "Créé le {0}"
+    "created": "Créé le {0}",
+    "completed_on": "Terminé le {0}"
   },
   "work_order": {
     "edit_title": "Modifier l'ordre de travail",
@@ -331,7 +332,8 @@
     "cost": "Coût",
     "vendor": "Prestataire",
     "delete_desc": "Son historique et ses notes seront supprimés. Cette action est irréversible.",
-    "delete_title": "Supprimer cet ordre de travail ?"
+    "delete_title": "Supprimer cet ordre de travail ?",
+    "completed_on": "Terminé le {0}"
   },
   "vendors": {
     "title": "Prestataires",

@@ -142,8 +142,9 @@ export function MaintenancePage() {
                   </div>
                   <div className="text-right text-muted-foreground">
                     {w.scheduled_at && <div>{tf("maintenance.scheduled", formatDate(w.scheduled_at))}</div>}
+                    {w.completed_at && <div>{tf("maintenance.completed_on", formatDate(w.completed_at))}</div>}
                     {w.cost != null && <div className="font-medium tabular-nums text-foreground">{formatMoney(w.cost, app.settings.currency)}</div>}
-                    {!w.scheduled_at && w.cost == null && <div>{tf("maintenance.created", formatDate(w.created_at))}</div>}
+                    {!w.scheduled_at && !w.completed_at && w.cost == null && <div>{tf("maintenance.created", formatDate(w.created_at))}</div>}
                   </div>
                 </div>
               </Card>

@@ -63,5 +63,11 @@
     "paid_change_title": "تغيير الحالة من مدفوع؟",
     "paid_change_desc": "سجلت مدفوعات لهذا الرسم. قد يؤثر تغيير الحالة على التناسق المالي.",
     "paid_change_confirm": "متابعة"
+  },
+  "maintenance": {
+    "completed_on": "أُنجزت في {0}"
+  },
+  "work_order": {
+    "completed_on": "تاريخ الإنجاز: {0}"
   }
 }

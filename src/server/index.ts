@@ -887,6 +887,11 @@ app.post("/api/work-orders", async (c) => {
   const parsed = await parseJson(c, WorkOrderInput);
   if (!parsed.ok) return c.json(err(parsed.code, parsed.error), 400);
   const d = parsed.data;
+  // P7 completion stamp: an order created directly as "completed" without a
+  // timestamp receives one, keeping the invariant consistent with the edit path.
+  if (d.status === "completed" && d.completed_at == null) {
+    d.completed_at = new Date().toISOString();
+  }
   const result = await run(
     `INSERT INTO work_orders (property_id, unit_id, tenant_id, vendor_id, title, description, priority, status, scheduled_at, completed_at, cost, notes)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -907,6 +912,20 @@ app.put("/api/work-orders/:id", async (c) => {
   if (!id) return c.json(err(ErrorCode.invalid_id, "Invalid ID"), 400);
   const parsed = await parseJson(c, WorkOrderInput.partial());
   if (!parsed.ok) return c.json(err(parsed.code, parsed.error), 400);
+
+  // P7 completion stamp: when an edit moves a work order to "completed" and no
+  // completion timestamp is supplied (including an explicit null), stamp it
+  // once. Re-editing an already completed order without changing the completion
+  // state preserves the original timestamp instead of clearing or re-stamping it.
+  if (parsed.data.status === "completed") {
+    const existing = await get<{ completed_at: string | null }>("SELECT completed_at FROM work_orders WHERE id = ?", [id]);
+    if (!existing) return c.json(err(ErrorCode.not_found, "Not found"), 404);
+    const desired = parsed.data.completed_at === undefined ? existing.completed_at : parsed.data.completed_at;
+    if (desired == null) {
+      parsed.data.completed_at = new Date().toISOString();
+    }
+  }
+
   const { sets, params } = buildUpdate(parsed.data);
   if (!sets.length) return c.json(err(ErrorCode.no_fields, "No fields"), 400);
   params.push(id);

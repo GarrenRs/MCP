@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { formatDate } from "@/lib/utils";
 import type { Unit, WorkOrder, WorkOrderPriority, WorkOrderStatus } from "@/types";
 import { tf } from "@/i18n";
 
@@ -203,6 +204,11 @@ export function WorkOrderDialog({ open, onOpenChange, workOrder, defaults, onSav
             <Label htmlFor="wo-notes">{tf("common.notes")}</Label>
             <Textarea id="wo-notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
           </div>
+          {workOrder?.completed_at && (
+            <div className="text-xs text-muted-foreground">
+              {tf("work_order.completed_on", formatDate(workOrder.completed_at))}
+            </div>
+          )}
         </div>
 
         <DialogFooter className="mt-2">
