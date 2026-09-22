@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Building2, MapPin, Plus } from "lucide-react";
+import { Building2, Download, MapPin, Plus } from "lucide-react";
 import { useApp } from "@/context";
 import { cn, colorClasses } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { PropertyDialog } from "./property-dialog";
 import type { Property } from "@/types";
 import { PageShell } from "@/components/page-shell";
 import { tf } from "@/i18n";
+import { downloadCsv } from "@/api";
 
 export function PropertiesList({ navigate }: { navigate: (to: string) => void }) {
   const { properties } = useApp();
@@ -22,12 +23,17 @@ export function PropertiesList({ navigate }: { navigate: (to: string) => void })
       title={tf("properties.title")}
       meta={`${tf(properties.length === 1 ? "common.properties_n" : "common.properties_n_plural", properties.length)} · ${tf(totalUnits === 1 ? "common.units_n" : "common.units_n_plural", totalUnits)} · ${tf("common.occupied_of", occupied, totalUnits || 0)}`}
       actions={
-        properties.length > 0 ? (
-          <Button onClick={() => { setEditing(undefined); setDialogOpen(true); }}>
-            <Plus className="h-4 w-4" />
-            {tf("properties.new")}
+        <>
+          <Button variant="secondary" onClick={() => downloadCsv(`/api/export/properties?filename=${encodeURIComponent(tf("export.properties_filename"))}`, tf("export.properties_filename"))}>
+            <Download className="h-4 w-4" /> {tf("export.button")}
           </Button>
-        ) : null
+          {properties.length > 0 && (
+            <Button onClick={() => { setEditing(undefined); setDialogOpen(true); }}>
+              <Plus className="h-4 w-4" />
+              {tf("properties.new")}
+            </Button>
+          )}
+        </>
       }
     >
       {properties.length === 0 ? (

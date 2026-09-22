@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Mail, Phone, Plus, Search, User } from "lucide-react";
+import { Download, Mail, Phone, Plus, Search, User } from "lucide-react";
 import { useApp } from "@/context";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -9,6 +9,7 @@ import { TenantDialog } from "./tenant-dialog";
 import type { Tenant } from "@/types";
 import { PageShell } from "@/components/page-shell";
 import { tf } from "@/i18n";
+import { downloadCsv } from "@/api";
 
 export function TenantsList({ navigate }: { navigate: (to: string) => void }) {
   const app = useApp();
@@ -44,11 +45,16 @@ export function TenantsList({ navigate }: { navigate: (to: string) => void }) {
       title={tf("tenants.title")}
       meta={tf(tenants.length === 1 ? "common.record_n" : "common.record_n_plural", tenants.length)}
       actions={
-        tenants.length > 0 ? (
-          <Button onClick={() => setDialogOpen(true)}>
-            <Plus className="h-4 w-4" /> {tf("tenants.new")}
+        <>
+          <Button variant="secondary" onClick={() => downloadCsv(`/api/export/tenants?filename=${encodeURIComponent(tf("export.tenants_filename"))}`, tf("export.tenants_filename"))}>
+            <Download className="h-4 w-4" /> {tf("export.button")}
           </Button>
-        ) : null
+          {tenants.length > 0 && (
+            <Button onClick={() => setDialogOpen(true)}>
+              <Plus className="h-4 w-4" /> {tf("tenants.new")}
+            </Button>
+          )}
+        </>
       }
       width="max-w-6xl"
     >

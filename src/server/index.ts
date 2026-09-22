@@ -1363,6 +1363,127 @@ app.delete("/api/users/:id", async (c) => {
   return c.json({ ok: true });
 });
 
+// ── CSV export ─────────────────────────────────────────────────────
+// Read-only exports for rent ledger, tenants, and properties. All routes
+// inherit the existing session middleware; no public allowlist changes.
+
+function csvCell(value: unknown): string {
+  if (value == null) return "";
+  const s = String(value);
+  if (/[",\r\n]/.test(s)) {
+    return `"${s.replace(/"/g, '""')}"`;
+  }
+  return s;
+}
+
+function csvNumber(value: unknown): string {
+  if (value == null) return "";
+  const n = Number(value);
+  if (!Number.isFinite(n)) return String(value);
+  return n.toFixed(10).replace(/\.?0+$/, "");
+}
+
+function csvDisposition(name: string): string {
+  // Neutralize header-breaking control characters (including CR/LF) up front.
+  const safe = name.replace(/[\u0000-\u001f\u007f]/g, "_");
+  // RFC 5987 UTF-8 variant: percent-encode (inputs already control-neutralized).
+  const encoded = encodeURIComponent(safe).replace(/%(?![0-9A-Fa-f]{2})/g, "%25");
+  // ASCII fallback: printable ASCII only, with `"` and `\` escaped.
+  const ascii = safe
+    .replace(/[^\x20-\x7e]/g, "_")
+    .replace(/\\/g, "\\\\")
+    .replace(/"/g, '\\"');
+  return `attachment; filename="${ascii}"; filename*=UTF-8''${encoded}`;
+}
+
+function csvResponse(c: Context, filename: string, headers: string[], rows: Record<string, unknown>[]): Response {
+  const lines: string[] = [headers.join(",")];
+  for (const row of rows) {
+    lines.push(headers.map((h) => csvCell(row[h])).join(","));
+  }
+  const body = lines.join("\r\n") + "\r\n";
+  c.header("Content-Type", "text/csv; charset=utf-8");
+  c.header("Content-Disposition", csvDisposition(filename));
+  return c.body(body);
+}
+
+app.get("/api/export/rent-ledger", async (c) => {
+  const period = c.req.query("period");
+  if (!period) return c.json(err(ErrorCode.period_required, "period (YYYY-MM) required"), 400);
+  if (!/^\d{4}-\d{2}$/.test(period)) return c.json(err(ErrorCode.validation, "period must be YYYY-MM"), 400);
+  await markOverdue();
+  const rows = await query(`${CHARGE_SELECT} WHERE c.period = ? ORDER BY c.due_date, p.name, u.name`, [period]).catch(() => []);
+  const headers = ["period", "due_date", "property_id", "property_name", "unit_id", "unit_name", "tenant_id", "tenant_first_name", "tenant_last_name", "amount", "amount_paid", "balance", "status"];
+  const data = rows.map((r) => ({
+    period: r.period,
+    due_date: r.due_date,
+    property_id: r.property_id,
+    property_name: r.property_name,
+    unit_id: r.unit_id,
+    unit_name: r.unit_name,
+    tenant_id: r.tenant_id,
+    tenant_first_name: r.tenant_first_name,
+    tenant_last_name: r.tenant_last_name,
+    amount: csvNumber(r.amount),
+    amount_paid: csvNumber(r.amount_paid),
+    balance: csvNumber(Math.max(0, Number(r.amount ?? 0) - Number(r.amount_paid ?? 0))),
+    status: r.status,
+  }));
+  const filename = c.req.query("filename") || `rent-ledger-${period}.csv`;
+  return csvResponse(c, filename, headers, data);
+});
+
+app.get("/api/export/tenants", async (c) => {
+  const rows = await query(
+    `SELECT t.*,
+       (SELECT u.id FROM leases l LEFT JOIN units u ON u.id = l.unit_id
+          WHERE l.primary_tenant_id = t.id AND l.status = 'active' LIMIT 1) as active_unit_id,
+       (SELECT u.name FROM leases l LEFT JOIN units u ON u.id = l.unit_id
+          WHERE l.primary_tenant_id = t.id AND l.status = 'active' LIMIT 1) as active_unit_name,
+       (SELECT p.name FROM leases l LEFT JOIN units u ON u.id = l.unit_id LEFT JOIN properties p ON p.id = u.property_id
+          WHERE l.primary_tenant_id = t.id AND l.status = 'active' LIMIT 1) as active_property_name
+     FROM tenants t ORDER BY t.last_name, t.first_name LIMIT 500`,
+  );
+  const headers = ["id", "first_name", "last_name", "email", "phone", "active_property_name", "active_unit_name"];
+  const data = rows.map((r) => ({
+    id: r.id,
+    first_name: r.first_name,
+    last_name: r.last_name,
+    email: r.email,
+    phone: r.phone,
+    active_property_name: r.active_property_name,
+    active_unit_name: r.active_unit_name,
+  }));
+  const filename = c.req.query("filename") || "tenants.csv";
+  return csvResponse(c, filename, headers, data);
+});
+
+app.get("/api/export/properties", async (c) => {
+  const rows = await query(
+    `SELECT p.*,
+       (SELECT COUNT(*) FROM units u WHERE u.property_id = p.id) as unit_count,
+       (SELECT COUNT(*) FROM units u WHERE u.property_id = p.id AND u.status = 'occupied') as occupied_count
+     FROM properties p ORDER BY p.name`,
+  );
+  const headers = ["id", "name", "type", "address", "commune", "wilaya", "country", "city", "state", "zip", "unit_count", "occupied_count"];
+  const data = rows.map((r) => ({
+    id: r.id,
+    name: r.name,
+    type: r.type,
+    address: r.address,
+    commune: r.commune,
+    wilaya: r.wilaya,
+    country: r.country,
+    city: r.city,
+    state: r.state,
+    zip: r.zip,
+    unit_count: csvNumber(r.unit_count),
+    occupied_count: csvNumber(r.occupied_count),
+  }));
+  const filename = c.req.query("filename") || "properties.csv";
+  return csvResponse(c, filename, headers, data);
+});
+
 // ── Health ─────────────────────────────────────────────────────────
 
 app.get("/api/health", (c) => c.json({ ok: true }));

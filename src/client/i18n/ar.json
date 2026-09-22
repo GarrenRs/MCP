@@ -2,6 +2,12 @@
   "nav": {
     "applications": "طلبات الإيجار"
   },
+  "export": {
+    "button": "تصدير CSV",
+    "rent_filename": "إيجارات-{0}.csv",
+    "tenants_filename": "مستأجرون.csv",
+    "properties_filename": "عقارات.csv"
+  },
   "errors": {
     "invalid_id": "معرّف غير صالح",
     "not_found": "غير موجود",

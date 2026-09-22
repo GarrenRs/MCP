@@ -384,6 +384,12 @@
     "option_ar": "العربية",
     "option_fr_dz": "Français (Algérie)"
   },
+  "export": {
+    "button": "Exporter CSV",
+    "rent_filename": "loyers-{0}.csv",
+    "tenants_filename": "locataires.csv",
+    "properties_filename": "biens.csv"
+  },
   "errors": {
     "invalid_id": "Identifiant invalide",
     "not_found": "Introuvable",

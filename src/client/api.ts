@@ -41,3 +41,30 @@ export async function api<T>(method: string, path: string, body?: unknown): Prom
   }
   return data as T;
 }
+
+export async function downloadCsv(path: string, filename: string): Promise<void> {
+  const r = await fetch(path, { credentials: "include" });
+  if (!r.ok) {
+    let data: unknown = null;
+    try {
+      data = await r.json();
+    } catch {
+      /* empty body */
+    }
+    if (r.status === 401 && onUnauthorized) {
+      onUnauthorized();
+    }
+    const { error, code } = (data as { error?: string; code?: string } | null) ?? {};
+    const fallback = error || `${r.status} ${r.statusText}`;
+    throw new ApiError(r.status, resolveErrorMessage(code, fallback), code);
+  }
+  const blob = await r.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, Pencil, Receipt, Sparkles } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Pencil, Receipt, Sparkles } from "lucide-react";
 import { useApp } from "@/context";
 import { addMonths, cn, currentPeriod, formatDate, formatMoney, formatPeriod } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +11,7 @@ import { ChargeEditDialog } from "./charge-edit-dialog";
 import type { ChargeStatus, RentCharge } from "@/types";
 import { PageShell } from "@/components/page-shell";
 import { tf } from "@/i18n";
+import { downloadCsv } from "@/api";
 
 const STATUS_TONE: Record<ChargeStatus, string> = {
   open: "bg-info-tint text-info",
@@ -94,11 +95,14 @@ export function RentPage() {
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
-          {charges.length > 0 ? (
+          <Button variant="secondary" onClick={() => downloadCsv(`/api/export/rent-ledger?period=${encodeURIComponent(period)}&filename=${encodeURIComponent(tf("export.rent_filename", period))}`, tf("export.rent_filename", period))}>
+            <Download className="h-4 w-4" /> {tf("export.button")}
+          </Button>
+          {charges.length > 0 && (
             <Button onClick={generate} disabled={generating}>
               <Sparkles className="h-4 w-4" /> {tf("rent.generate")}
             </Button>
-          ) : null}
+          )}
         </>
       }
     >
