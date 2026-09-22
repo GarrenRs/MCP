@@ -9,6 +9,11 @@ import {
   planChargeGeneration,
 } from "./finance";
 import {
+  dateRangesOverlap,
+  leaseClaimsUnit,
+  reconcileUnitStatus,
+} from "./leases";
+import {
   hashPassword,
   verifyPassword,
   createSession,
@@ -542,6 +547,38 @@ const LEASE_SELECT = `
   LEFT JOIN tenants t ON t.id = l.primary_tenant_id
 `;
 
+// Recompose a unit's occupancy from the lease truth (idempotent). P9: unit
+// occupancy must never drift from the leases that actually exist, so every
+// lease mutation and the dashboard summary converge through these helpers.
+async function reconcileUnitOccupancy(unitId: number): Promise<void> {
+  const unit = await get<{ status: string }>("SELECT status FROM units WHERE id = ?", [unitId]);
+  if (!unit) return;
+  const active = await get<{ n: number }>(
+    "SELECT COUNT(*) as n FROM leases WHERE unit_id = ? AND status = 'active'", [unitId],
+  );
+  const target = reconcileUnitStatus(unit.status, active?.n ?? 0);
+  if (target !== unit.status) {
+    await run("UPDATE units SET status = ? WHERE id = ?", [target, unitId]);
+  }
+}
+
+async function reconcileAllUnits(): Promise<{ checked: number; changed: number }> {
+  const units = await query<{ id: number }>("SELECT id FROM units");
+  let changed = 0;
+  for (const u of units) {
+    const before = await get<{ status: string }>("SELECT status FROM units WHERE id = ?", [u.id]);
+    const active = await get<{ n: number }>(
+      "SELECT COUNT(*) as n FROM leases WHERE unit_id = ? AND status = 'active'", [u.id],
+    );
+    const target = reconcileUnitStatus(before?.status ?? "vacant", active?.n ?? 0);
+    if (target !== before?.status) {
+      await run("UPDATE units SET status = ? WHERE id = ?", [target, u.id]);
+      changed++;
+    }
+  }
+  return { checked: units.length, changed };
+}
+
 app.get("/api/leases", async (c) => {
   const status = c.req.query("status");
   const tenantId = intParam(c.req.query("tenant_id"));
@@ -568,6 +605,18 @@ app.post("/api/leases", async (c) => {
   const parsed = await parseJson(c, LeaseInput);
   if (!parsed.ok) return c.json(err(parsed.code, parsed.error), 400);
   const d = parsed.data;
+  // P9 — Occupancy integrity: reject a lease that claims a unit while an
+  // active/upcoming lease on the same unit covers any overlapping period.
+  if (leaseClaimsUnit(d.status ?? "active")) {
+    const clash = await get<{ id: number }>(
+      `SELECT l.id FROM leases l
+        WHERE l.unit_id = ? AND l.status IN ('active', 'upcoming')
+          AND l.start_date <= ? AND l.end_date >= ?
+        LIMIT 1`,
+      [d.unit_id, d.end_date, d.start_date],
+    );
+    if (clash) return c.json(err(ErrorCode.lease_conflict, "That unit already has a lease covering this period"), 409);
+  }
   const result = await run(
     `INSERT INTO leases (unit_id, primary_tenant_id, start_date, end_date, monthly_rent, deposit, rent_due_day, late_fee, status, notes)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -586,20 +635,49 @@ app.put("/api/leases/:id", async (c) => {
   if (!id) return c.json(err(ErrorCode.invalid_id, "Invalid ID"), 400);
   const parsed = await parseJson(c, LeaseInput.partial());
   if (!parsed.ok) return c.json(err(parsed.code, parsed.error), 400);
+  const d = parsed.data;
+  // P9 — Recheck overlap on edits touching dates/unit/status, excluding this
+  // lease (so updating notes alone never trips the guard).
+  const current = await get<{ unit_id: number; start_date: string; end_date: string; status: string }>(
+    "SELECT unit_id, start_date, end_date, status FROM leases WHERE id = ?", [id],
+  );
+  if (current && leaseClaimsUnit(d.status ?? current.status)) {
+    const clash = await get<{ id: number }>(
+      `SELECT l.id FROM leases l
+        WHERE l.unit_id = ? AND l.id != ? AND l.status IN ('active', 'upcoming')
+          AND l.start_date <= ? AND l.end_date >= ?
+        LIMIT 1`,
+      [d.unit_id ?? current.unit_id, id, d.start_date ?? current.start_date, d.end_date ?? current.end_date],
+    );
+    if (clash) {
+      return c.json(err(ErrorCode.lease_conflict, "That unit already has a lease covering this period"), 409);
+    }
+  }
   const { sets, params } = buildUpdate(parsed.data);
   if (!sets.length) return c.json(err(ErrorCode.no_fields, "No fields"), 400);
   params.push(id);
   const r = await run(`UPDATE leases SET ${sets.join(", ")} WHERE id = ?`, params);
   if (!r.changes) return c.json(err(ErrorCode.not_found, "Not found"), 404);
-  const row = await get(`${LEASE_SELECT} WHERE l.id = ?`, [id]);
+  const row = await get<{ id: number; unit_id: number }>(`${LEASE_SELECT} WHERE l.id = ?`, [id]);
+  // P9 — An edit can open or close occupancy (e.g. status → ended/cancelled);
+  // reconcile the unit to the lease truth so units.status never drifts.
+  if (row?.unit_id) {
+    await reconcileUnitOccupancy(row.unit_id).catch(() => undefined);
+  }
   return c.json({ lease: row });
 });
+
 
 app.delete("/api/leases/:id", async (c) => {
   const id = intParam(c.req.param("id"));
   if (!id) return c.json(err(ErrorCode.invalid_id, "Invalid ID"), 400);
+  const lease = await get<{ unit_id: number }>("SELECT unit_id FROM leases WHERE id = ?", [id]);
   const r = await run("DELETE FROM leases WHERE id = ?", [id]);
   if (!r.changes) return c.json(err(ErrorCode.not_found, "Not found"), 404);
+  // P9 — The unit may now be vacant; reconcile its occupancy from the lease truth.
+  if (lease) {
+    await reconcileUnitOccupancy(lease.unit_id).catch(() => undefined);
+  }
   return c.json({ ok: true });
 });
 
@@ -1167,6 +1245,20 @@ app.put("/api/settings", async (c) => {
   const out: Record<string, string> = { ...DEFAULT_SETTINGS };
   for (const r of rows) out[r.key] = r.value;
   return c.json({ settings: out });
+});
+
+// ── Occupancy integrity (admin) ───────────────────────────────────
+
+// P9 — Force a full occupancy reconciliation across all units. Idempotent:
+// converges each units.status to whatever the active leases require, so a
+// drifted row is fixed on demand by an admin.
+app.post("/api/admin/reconcile-occupancy", async (c) => {
+  const user = c.get("user");
+  if (!user || !hasMinimumRole(user.role, "admin")) {
+    return c.json(err(ErrorCode.forbidden, "Forbidden"), 403);
+  }
+  const result = await reconcileAllUnits();
+  return c.json(result);
 });
 
 // ── User management (owner + admin) ──────────────────────────────

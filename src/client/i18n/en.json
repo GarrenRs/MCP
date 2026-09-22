@@ -373,7 +373,8 @@
     "email_taken": "An account with this email already exists",
     "bootstrap_unavailable": "Bootstrap is no longer available",
     "cannot_delete_self": "You can't delete your own account",
-    "cannot_modify_owner": "You can't modify the owner account"
+    "cannot_modify_owner": "You can't modify the owner account",
+    "lease_conflict": "There is already an active or upcoming lease for that unit in this period."
   },
   "settings": {
     "title": "Settings",

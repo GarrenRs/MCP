@@ -18,6 +18,7 @@ export const ErrorCode = {
   invalid_body: "invalid_body",
   period_required: "period_required",
   charge_not_found: "charge_not_found",
+  lease_conflict: "lease_conflict",
   unauthorized: "unauthorized",
   forbidden: "forbidden",
   invalid_credentials: "invalid_credentials",

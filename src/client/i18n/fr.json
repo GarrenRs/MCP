@@ -373,7 +373,8 @@
     "email_taken": "Un compte avec cet e-mail existe déjà",
     "bootstrap_unavailable": "L'initialisation n'est plus disponible",
     "cannot_delete_self": "Vous ne pouvez pas supprimer votre propre compte",
-    "cannot_modify_owner": "Vous ne pouvez pas modifier le compte propriétaire"
+    "cannot_modify_owner": "Vous ne pouvez pas modifier le compte propriétaire",
+    "lease_conflict": "Il existe déjà un bail actif ou à venir pour ce logement sur cette période."
   },
   "settings": {
     "title": "Paramètres",
