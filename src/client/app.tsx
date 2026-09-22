@@ -14,6 +14,7 @@ import { TenantPage } from "./components/tenants/tenant-page";
 import { LeasesPage } from "./components/leases/leases-page";
 import { RentPage } from "./components/rent/rent-page";
 import { MaintenancePage } from "./components/maintenance/maintenance-page";
+import { ApplicationsPage } from "./components/applications/applications-page";
 import { SettingsPage } from "./components/settings/settings-page";
 import { t } from "./i18n";
 
@@ -35,6 +36,7 @@ const PORTFOLIO: AppNavItem[] = [
   { id: "properties", label: "Properties", href: "/properties", icon: "building-2", color: "green" },
   { id: "tenants", label: "Tenants", href: "/tenants", icon: "users", color: "blue" },
   { id: "leases", label: "Leases", href: "/leases", icon: "clipboard-list", color: "violet" },
+  { id: "applications", label: "Applications", href: "/applications", icon: "file-text", color: "sky" },
 ];
 const OPERATIONS: AppNavItem[] = [
   { id: "rent", label: "Rent", href: "/rent", icon: "dollar-sign", color: "amber" },
@@ -50,6 +52,7 @@ const NAV_LABELS: Record<string, string> = {
   properties: "nav.properties",
   tenants: "nav.tenants",
   leases: "nav.leases",
+  applications: "nav.applications",
   rent: "nav.rent",
   maintenance: "nav.maintenance",
   settings: "nav.settings",
@@ -181,6 +184,7 @@ export function App() {
               {route.name === "tenants" && <TenantsList navigate={navigate} />}
               {route.name === "tenant" && <TenantPage id={route.id} navigate={navigate} />}
               {route.name === "leases" && <LeasesPage navigate={navigate} />}
+              {route.name === "applications" && <ApplicationsPage />}
               {route.name === "rent" && <RentPage />}
               {route.name === "maintenance" && <MaintenancePage />}
               {route.name === "settings" && <SettingsPage currentUserRole={sessionUser?.role} />}

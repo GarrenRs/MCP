@@ -10,6 +10,7 @@
     "properties": "Properties",
     "tenants": "Tenants",
     "leases": "Leases",
+    "applications": "Applications",
     "rent": "Rent",
     "maintenance": "Maintenance",
     "settings": "Settings",
@@ -108,6 +109,13 @@
     "in_progress": "In progress",
     "completed": "Completed",
     "cancelled": "Cancelled"
+  },
+  "application_status": {
+    "new": "New",
+    "screening": "Screening",
+    "approved": "Approved",
+    "declined": "Declined",
+    "withdrawn": "Withdrawn"
   },
   "priority": {
     "low": "Low",
@@ -334,6 +342,24 @@
     "delete_desc": "Its history and notes go with it. This cannot be undone.",
     "delete_title": "Delete this work order?",
     "completed_on": "Completed on {0}"
+  },
+  "applications": {
+    "title": "Applications",
+    "new": "New application",
+    "all": "All",
+    "search": "Search by name, email, phone, employer, or unit",
+    "nothing": "No applications yet",
+    "empty_desc": "Record a rental application to start screening an applicant.",
+    "no_match": "No applications match this filter or search.",
+    "property_unit": "Property · Unit",
+    "unit": "Unit",
+    "move_in": "Desired move-in",
+    "applied": "Applied",
+    "applied_on": "Applied on {0}",
+    "edit_title": "Edit application",
+    "new_title": "New application",
+    "delete_title": "Delete this application?",
+    "delete_desc": "The applicant's details and notes go with it. This cannot be undone."
   },
   "vendors": {
     "title": "Vendors",
