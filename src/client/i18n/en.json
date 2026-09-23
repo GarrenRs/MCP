@@ -451,5 +451,36 @@
     "paid_change_title": "Change status from paid?",
     "paid_change_desc": "This charge has payments recorded. Changing the status may affect financial consistency.",
     "paid_change_confirm": "Continue"
+  },
+  "audit": {
+    "tab": "Audit",
+    "empty": "No audit entries yet.",
+    "loading": "Loading audit log…",
+    "col_time": "Time",
+    "col_actor": "Actor",
+    "col_action": "Action",
+    "col_entity": "Entity",
+    "col_record": "Record",
+    "col_changes": "Changes",
+    "action": {
+      "create": "Create",
+      "update": "Update",
+      "delete": "Delete",
+      "generate": "Generate"
+    },
+    "entity": {
+      "property": "Property",
+      "unit": "Unit",
+      "tenant": "Tenant",
+      "lease": "Lease",
+      "rent_charge": "Rent charge",
+      "payment": "Payment",
+      "vendor": "Vendor",
+      "work_order": "Work order",
+      "application": "Application",
+      "user": "User",
+      "settings": "Settings"
+    },
+    "no_changes": "—"
   }
 }

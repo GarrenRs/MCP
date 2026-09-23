@@ -22,6 +22,7 @@ import type { Vendor, VendorCategory } from "@/types";
 import { PageShell } from "@/components/page-shell";
 import { t, tf } from "@/i18n";
 import { UsersTab } from "./users-tab";
+import { AuditTab } from "./audit-tab";
 
 const COLORS = ["sky", "emerald", "amber", "rose", "violet", "fuchsia", "teal", "orange", "slate"];
 
@@ -42,6 +43,9 @@ export function SettingsPage({ currentUserRole }: { currentUserRole?: string }) 
             {(currentUserRole === "owner" || currentUserRole === "admin") && (
               <TabsTrigger value="users">{t("auth.users")}</TabsTrigger>
             )}
+            {(currentUserRole === "owner" || currentUserRole === "admin") && (
+              <TabsTrigger value="audit">{t("audit.tab")}</TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="vendors" className="mt-4">
@@ -52,6 +56,9 @@ export function SettingsPage({ currentUserRole }: { currentUserRole?: string }) 
           </TabsContent>
           <TabsContent value="users" className="mt-4">
             <UsersTab currentUserRole={currentUserRole ?? "manager"} />
+          </TabsContent>
+          <TabsContent value="audit" className="mt-4">
+            <AuditTab />
           </TabsContent>
         </Tabs>
     </PageShell>

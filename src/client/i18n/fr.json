@@ -451,5 +451,36 @@
     "paid_change_title": "Changer le statut de payé ?",
     "paid_change_desc": "Cette charge a des paiements enregistrés. Le changement de statut peut affecter la cohérence financière.",
     "paid_change_confirm": "Continuer"
+  },
+  "audit": {
+    "tab": "Audit",
+    "empty": "Aucune entrée d'audit pour l'instant.",
+    "loading": "Chargement du journal d'audit…",
+    "col_time": "Date/Heure",
+    "col_actor": "Acteur",
+    "col_action": "Action",
+    "col_entity": "Entité",
+    "col_record": "Enregistrement",
+    "col_changes": "Modifications",
+    "action": {
+      "create": "Création",
+      "update": "Modification",
+      "delete": "Suppression",
+      "generate": "Génération"
+    },
+    "entity": {
+      "property": "Bien",
+      "unit": "Unité",
+      "tenant": "Locataire",
+      "lease": "Bail",
+      "rent_charge": "Charge de loyer",
+      "payment": "Paiement",
+      "vendor": "Prestataire",
+      "work_order": "Ordre de travail",
+      "application": "Candidature",
+      "user": "Utilisateur",
+      "settings": "Paramètres"
+    },
+    "no_changes": "—"
   }
 }

@@ -104,5 +104,36 @@
   },
   "work_order": {
     "completed_on": "تاريخ الإنجاز: {0}"
+  },
+  "audit": {
+    "tab": "السجل",
+    "empty": "لا توجد سجلات تدقيق بعد.",
+    "loading": "جاري تحميل سجل التدقيق…",
+    "col_time": "التاريخ/الوقت",
+    "col_actor": "المستخدم",
+    "col_action": "الإجراء",
+    "col_entity": "الكيان",
+    "col_record": "السجل",
+    "col_changes": "التغييرات",
+    "action": {
+      "create": "إنشاء",
+      "update": "تحديث",
+      "delete": "حذف",
+      "generate": "توليد"
+    },
+    "entity": {
+      "property": "عقار",
+      "unit": "وحدة",
+      "tenant": "مستأجر",
+      "lease": "عقد إيجار",
+      "rent_charge": "رسوم الإيجار",
+      "payment": "دفعة",
+      "vendor": "مورد",
+      "work_order": "أمر عمل",
+      "application": "طلب إيجار",
+      "user": "مستخدم",
+      "settings": "الإعدادات"
+    },
+    "no_changes": "—"
   }
 }

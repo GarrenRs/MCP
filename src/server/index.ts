@@ -272,6 +272,25 @@ function buildUpdate(fields: Record<string, unknown>): { sets: string[]; params:
   return { sets, params };
 }
 
+export const AUDIT_DEFAULT_LIMIT = 50;
+export const AUDIT_MAX_LIMIT = 200;
+
+// writes are best-effort AFTER the business mutation succeeded; never throws, never alters the business response
+async function writeAudit(c: Context, action: string, entity: string,
+  recordId: number | null, oldValue: unknown, newValue: unknown): Promise<void> {
+  const actor = c.get("user")?.userId ?? null;
+  const oldText = oldValue === null || oldValue === undefined ? null : JSON.stringify(oldValue);
+  const newText = newValue === null || newValue === undefined ? null : JSON.stringify(newValue);
+  try {
+    await run(
+      "INSERT INTO audit_logs (actor_user_id, action, entity, record_id, old_value, new_value) VALUES (?, ?, ?, ?, ?, ?)",
+      [actor, action, entity, recordId, oldText, newText],
+    );
+  } catch (e) {
+    console.error("audit write failed", { action, entity, recordId, error: String(e) });
+  }
+}
+
 // ── Properties ─────────────────────────────────────────────────────
 
 const PropertyInput = z.object({
@@ -346,8 +365,10 @@ app.put("/api/properties/:id", async (c) => {
 app.delete("/api/properties/:id", async (c) => {
   const id = intParam(c.req.param("id"));
   if (!id) return c.json(err(ErrorCode.invalid_id, "Invalid ID"), 400);
+  const row = await get<{ name: string }>("SELECT name FROM properties WHERE id = ?", [id]);
   const r = await run("DELETE FROM properties WHERE id = ?", [id]);
   if (!r.changes) return c.json(err(ErrorCode.not_found, "Not found"), 404);
+  await writeAudit(c, "delete", "property", id, row ? { name: row.name } : null, null);
   return c.json({ ok: true });
 });
 
@@ -426,8 +447,10 @@ app.put("/api/units/:id", async (c) => {
 app.delete("/api/units/:id", async (c) => {
   const id = intParam(c.req.param("id"));
   if (!id) return c.json(err(ErrorCode.invalid_id, "Invalid ID"), 400);
+  const row = await get<{ property_id: number; name: string; status: string }>("SELECT property_id, name, status FROM units WHERE id = ?", [id]);
   const r = await run("DELETE FROM units WHERE id = ?", [id]);
   if (!r.changes) return c.json(err(ErrorCode.not_found, "Not found"), 404);
+  await writeAudit(c, "delete", "unit", id, row ? { property_id: row.property_id, name: row.name, status: row.status } : null, null);
   return c.json({ ok: true });
 });
 
@@ -515,8 +538,10 @@ app.put("/api/tenants/:id", async (c) => {
 app.delete("/api/tenants/:id", async (c) => {
   const id = intParam(c.req.param("id"));
   if (!id) return c.json(err(ErrorCode.invalid_id, "Invalid ID"), 400);
+  const row = await get<{ first_name: string; last_name: string }>("SELECT first_name, last_name FROM tenants WHERE id = ?", [id]);
   const r = await run("DELETE FROM tenants WHERE id = ?", [id]);
   if (!r.changes) return c.json(err(ErrorCode.not_found, "Not found"), 404);
+  await writeAudit(c, "delete", "tenant", id, row ? { first_name: row.first_name, last_name: row.last_name } : null, null);
   return c.json({ ok: true });
 });
 
@@ -627,6 +652,13 @@ app.post("/api/leases", async (c) => {
     await run("UPDATE units SET status = 'occupied' WHERE id = ?", [d.unit_id]);
   }
   const row = await get(`${LEASE_SELECT} WHERE l.id = ?`, [result.lastInsertRowid]);
+  await writeAudit(c, "create", "lease", Number(result.lastInsertRowid), null, {
+    unit_id: d.unit_id,
+    start_date: d.start_date,
+    end_date: d.end_date,
+    monthly_rent: d.monthly_rent ?? 0,
+    status: d.status ?? "active",
+  });
   return c.json({ lease: row }, 201);
 });
 
@@ -638,8 +670,8 @@ app.put("/api/leases/:id", async (c) => {
   const d = parsed.data;
   // P9 — Recheck overlap on edits touching dates/unit/status, excluding this
   // lease (so updating notes alone never trips the guard).
-  const current = await get<{ unit_id: number; start_date: string; end_date: string; status: string }>(
-    "SELECT unit_id, start_date, end_date, status FROM leases WHERE id = ?", [id],
+  const current = await get<{ unit_id: number; primary_tenant_id: number | null; start_date: string; end_date: string; monthly_rent: number; rent_due_day: number; status: string }>(
+    "SELECT unit_id, primary_tenant_id, start_date, end_date, monthly_rent, rent_due_day, status FROM leases WHERE id = ?", [id],
   );
   if (current && leaseClaimsUnit(d.status ?? current.status)) {
     const clash = await get<{ id: number }>(
@@ -664,6 +696,24 @@ app.put("/api/leases/:id", async (c) => {
   if (row?.unit_id) {
     await reconcileUnitOccupancy(row.unit_id).catch(() => undefined);
   }
+  const oldValue = current ? {
+    unit_id: current.unit_id,
+    primary_tenant_id: current.primary_tenant_id,
+    start_date: current.start_date,
+    end_date: current.end_date,
+    monthly_rent: current.monthly_rent,
+    rent_due_day: current.rent_due_day,
+    status: current.status,
+  } : null;
+  const newValue: Record<string, unknown> = {};
+  if (d.unit_id !== undefined) newValue.unit_id = d.unit_id;
+  if (d.primary_tenant_id !== undefined) newValue.primary_tenant_id = d.primary_tenant_id;
+  if (d.start_date !== undefined) newValue.start_date = d.start_date;
+  if (d.end_date !== undefined) newValue.end_date = d.end_date;
+  if (d.monthly_rent !== undefined) newValue.monthly_rent = d.monthly_rent;
+  if (d.rent_due_day !== undefined) newValue.rent_due_day = d.rent_due_day;
+  if (d.status !== undefined) newValue.status = d.status;
+  await writeAudit(c, "update", "lease", id, oldValue, Object.keys(newValue).length ? newValue : null);
   return c.json({ lease: row });
 });
 
@@ -671,13 +721,23 @@ app.put("/api/leases/:id", async (c) => {
 app.delete("/api/leases/:id", async (c) => {
   const id = intParam(c.req.param("id"));
   if (!id) return c.json(err(ErrorCode.invalid_id, "Invalid ID"), 400);
-  const lease = await get<{ unit_id: number }>("SELECT unit_id FROM leases WHERE id = ?", [id]);
+  const lease = await get<{ unit_id: number; primary_tenant_id: number | null; start_date: string; end_date: string; monthly_rent: number; status: string }>(
+    "SELECT unit_id, primary_tenant_id, start_date, end_date, monthly_rent, status FROM leases WHERE id = ?", [id],
+  );
   const r = await run("DELETE FROM leases WHERE id = ?", [id]);
   if (!r.changes) return c.json(err(ErrorCode.not_found, "Not found"), 404);
   // P9 — The unit may now be vacant; reconcile its occupancy from the lease truth.
   if (lease) {
     await reconcileUnitOccupancy(lease.unit_id).catch(() => undefined);
   }
+  await writeAudit(c, "delete", "lease", id, lease ? {
+    unit_id: lease.unit_id,
+    primary_tenant_id: lease.primary_tenant_id,
+    start_date: lease.start_date,
+    end_date: lease.end_date,
+    monthly_rent: lease.monthly_rent,
+    status: lease.status,
+  } : null, null);
   return c.json({ ok: true });
 });
 
@@ -754,6 +814,12 @@ app.post("/api/rent-charges", async (c) => {
     return c.json({ charge: existing });
   }
   const row = await get(`${CHARGE_SELECT} WHERE c.id = ?`, [result.lastInsertRowid]);
+  await writeAudit(c, "create", "rent_charge", Number(result.lastInsertRowid), null, {
+    lease_id: d.lease_id,
+    period: d.period,
+    amount: d.amount ?? 0,
+    due_date: d.due_date,
+  });
   return c.json({ charge: row }, 201);
 });
 
@@ -776,6 +842,9 @@ app.post("/api/rent-charges/generate", async (c) => {
   }
   // Re-mark anything past due as 'overdue'.
   await markOverdue();
+  if (created > 0) {
+    await writeAudit(c, "generate", "rent_charge", null, null, { period, created });
+  }
   return c.json({ created, period });
 });
 
@@ -790,7 +859,11 @@ app.put("/api/rent-charges/:id", async (c) => {
   });
   const parsed = await parseJson(c, Patch);
   if (!parsed.ok) return c.json(err(parsed.code, parsed.error), 400);
-  const { sets, params } = buildUpdate(parsed.data);
+  const oldRow = await get<{ amount: number; due_date: string; status: string }>(
+    "SELECT amount, due_date, status FROM rent_charges WHERE id = ?", [id],
+  );
+  const d = parsed.data;
+  const { sets, params } = buildUpdate(d);
   if (!sets.length) return c.json(err(ErrorCode.no_fields, "No fields"), 400);
   params.push(id);
   const r = await run(`UPDATE rent_charges SET ${sets.join(", ")} WHERE id = ?`, params);
@@ -821,14 +894,33 @@ app.put("/api/rent-charges/:id", async (c) => {
   }
 
   const row = await get(`${CHARGE_SELECT} WHERE c.id = ?`, [id]);
+  const newValue: Record<string, unknown> = {};
+  if (d.amount !== undefined) newValue.amount = d.amount;
+  if (d.due_date !== undefined) newValue.due_date = d.due_date;
+  if (d.status !== undefined) newValue.status = d.status;
+  if (d.notes !== undefined) newValue.notes = d.notes;
+  await writeAudit(c, "update", "rent_charge", id, oldRow ? {
+    amount: oldRow.amount,
+    due_date: oldRow.due_date,
+    status: oldRow.status,
+  } : null, Object.keys(newValue).length ? newValue : null);
   return c.json({ charge: row });
 });
 
 app.delete("/api/rent-charges/:id", async (c) => {
   const id = intParam(c.req.param("id"));
   if (!id) return c.json(err(ErrorCode.invalid_id, "Invalid ID"), 400);
+  const row = await get<{ lease_id: number; period: string; amount: number; status: string }>(
+    "SELECT lease_id, period, amount, status FROM rent_charges WHERE id = ?", [id],
+  );
   const r = await run("DELETE FROM rent_charges WHERE id = ?", [id]);
   if (!r.changes) return c.json(err(ErrorCode.not_found, "Not found"), 404);
+  await writeAudit(c, "delete", "rent_charge", id, row ? {
+    lease_id: row.lease_id,
+    period: row.period,
+    amount: row.amount,
+    status: row.status,
+  } : null, null);
   return c.json({ ok: true });
 });
 
@@ -852,7 +944,7 @@ app.post("/api/payments", async (c) => {
   const parsed = await parseJson(c, PaymentInput);
   if (!parsed.ok) return c.json(err(parsed.code, parsed.error), 400);
   const d = parsed.data;
-  await run(
+  const result = await run(
     `INSERT INTO payments (charge_id, paid_at, amount, method, reference, notes)
      VALUES (?, COALESCE(?, datetime('now')), ?, ?, ?, ?)`,
     [d.charge_id, d.paid_at ?? null, d.amount, d.method ?? "cash", d.reference ?? null, d.notes ?? null],
@@ -865,13 +957,18 @@ app.post("/api/payments", async (c) => {
   const status = computeChargeStatus(charge.amount, paid);
   await run("UPDATE rent_charges SET amount_paid = ?, status = ? WHERE id = ?", [paid, status, d.charge_id]);
   const updated = await get(`${CHARGE_SELECT} WHERE c.id = ?`, [d.charge_id]);
+  await writeAudit(c, "create", "payment", Number(result.lastInsertRowid), null, {
+    charge_id: d.charge_id,
+    amount: d.amount,
+    method: d.method ?? "cash",
+  });
   return c.json({ charge: updated }, 201);
 });
 
 app.delete("/api/payments/:id", async (c) => {
   const id = intParam(c.req.param("id"));
   if (!id) return c.json(err(ErrorCode.invalid_id, "Invalid ID"), 400);
-  const row = await get<{ charge_id: number }>("SELECT charge_id FROM payments WHERE id = ?", [id]);
+  const row = await get<{ charge_id: number; amount: number; method: string }>("SELECT charge_id, amount, method FROM payments WHERE id = ?", [id]);
   if (!row) return c.json(err(ErrorCode.not_found, "Not found"), 404);
   await run("DELETE FROM payments WHERE id = ?", [id]);
   // Recompute the charge.
@@ -880,6 +977,11 @@ app.delete("/api/payments/:id", async (c) => {
   const paid = Number(sumRow?.total ?? 0);
   const status = !charge ? "open" : computeChargeStatus(charge.amount, paid);
   await run("UPDATE rent_charges SET amount_paid = ?, status = ? WHERE id = ?", [paid, status, row.charge_id]);
+  await writeAudit(c, "delete", "payment", id, {
+    charge_id: row.charge_id,
+    amount: row.amount,
+    method: row.method,
+  }, null);
   return c.json({ ok: true });
 });
 
@@ -928,8 +1030,10 @@ app.put("/api/vendors/:id", async (c) => {
 app.delete("/api/vendors/:id", async (c) => {
   const id = intParam(c.req.param("id"));
   if (!id) return c.json(err(ErrorCode.invalid_id, "Invalid ID"), 400);
+  const row = await get<{ name: string }>("SELECT name FROM vendors WHERE id = ?", [id]);
   const r = await run("DELETE FROM vendors WHERE id = ?", [id]);
   if (!r.changes) return c.json(err(ErrorCode.not_found, "Not found"), 404);
+  await writeAudit(c, "delete", "vendor", id, row ? { name: row.name } : null, null);
   return c.json({ ok: true });
 });
 
@@ -1032,8 +1136,10 @@ app.put("/api/work-orders/:id", async (c) => {
 app.delete("/api/work-orders/:id", async (c) => {
   const id = intParam(c.req.param("id"));
   if (!id) return c.json(err(ErrorCode.invalid_id, "Invalid ID"), 400);
+  const row = await get<{ title: string; status: string }>("SELECT title, status FROM work_orders WHERE id = ?", [id]);
   const r = await run("DELETE FROM work_orders WHERE id = ?", [id]);
   if (!r.changes) return c.json(err(ErrorCode.not_found, "Not found"), 404);
+  await writeAudit(c, "delete", "work_order", id, row ? { title: row.title, status: row.status } : null, null);
   return c.json({ ok: true });
 });
 
@@ -1107,8 +1213,16 @@ app.put("/api/applications/:id", async (c) => {
 app.delete("/api/applications/:id", async (c) => {
   const id = intParam(c.req.param("id"));
   if (!id) return c.json(err(ErrorCode.invalid_id, "Invalid ID"), 400);
+  const row = await get<{ first_name: string; last_name: string; status: string }>(
+    "SELECT first_name, last_name, status FROM applications WHERE id = ?", [id],
+  );
   const r = await run("DELETE FROM applications WHERE id = ?", [id]);
   if (!r.changes) return c.json(err(ErrorCode.not_found, "Not found"), 404);
+  await writeAudit(c, "delete", "application", id, row ? {
+    first_name: row.first_name,
+    last_name: row.last_name,
+    status: row.status,
+  } : null, null);
   return c.json({ ok: true });
 });
 
@@ -1233,6 +1347,8 @@ app.put("/api/settings", async (c) => {
   try { body = await c.req.json(); } catch { return c.json(err(ErrorCode.invalid_json, "Invalid JSON"), 400); }
   if (!body || typeof body !== "object") return c.json(err(ErrorCode.invalid_body, "Body must be an object"), 400);
   const entries = Object.entries(body as Record<string, unknown>).filter(([, v]) => v !== undefined && v !== null);
+  const previous = await query<{ key: string; value: string }>("SELECT key, value FROM settings");
+  const prevMap = new Map(previous.map((r) => [r.key, r.value]));
   for (const [key, value] of entries) {
     await run(
       `INSERT INTO settings (key, value, updated_at) VALUES (?, ?, datetime('now'))
@@ -1244,6 +1360,13 @@ app.put("/api/settings", async (c) => {
   const rows = await query<{ key: string; value: string }>("SELECT key, value FROM settings");
   const out: Record<string, string> = { ...DEFAULT_SETTINGS };
   for (const r of rows) out[r.key] = r.value;
+  for (const [key, value] of entries) {
+    const oldVal = prevMap.get(key) ?? null;
+    const newVal = String(value);
+    if (oldVal !== newVal) {
+      await writeAudit(c, "update", "settings", null, { key, value: oldVal }, { key, value: newVal });
+    }
+  }
   return c.json({ settings: out });
 });
 
@@ -1356,11 +1479,44 @@ app.delete("/api/users/:id", async (c) => {
   const id = intParam(c.req.param("id"));
   if (!id) return c.json(err(ErrorCode.invalid_id, "Invalid ID"), 400);
   if (id === caller.userId) return c.json(err(ErrorCode.cannot_delete_self, "Cannot delete your own account"), 409);
-  const target = await get<{ id: number }>("SELECT id FROM users WHERE id = ?", [id]);
+  const target = await get<{ id: number; email: string; role: string }>("SELECT id, email, role FROM users WHERE id = ?", [id]);
   if (!target) return c.json(err(ErrorCode.not_found, "Not found"), 404);
   await deleteUserSessions(id);
   await run("DELETE FROM users WHERE id = ?", [id]);
+  await writeAudit(c, "delete", "user", id, { email: target.email, role: target.role }, null);
   return c.json({ ok: true });
+});
+
+// ── Audit ──────────────────────────────────────────────────────────
+// Read-only operational log of sensitive changes and destructive actions.
+
+app.get("/api/audit", async (c) => {
+  const user = c.get("user");
+  if (!user || !hasMinimumRole(user.role, "admin")) {
+    return c.json(err(ErrorCode.forbidden, "Forbidden"), 403);
+  }
+  const entity = c.req.query("entity");
+  const limitQuery = c.req.query("limit");
+  let limit = AUDIT_DEFAULT_LIMIT;
+  if (limitQuery !== undefined) {
+    const parsed = intParam(limitQuery);
+    if (parsed === null || parsed <= 0) {
+      return c.json(err(ErrorCode.validation, "limit must be a positive integer"), 400);
+    }
+    limit = Math.min(parsed, AUDIT_MAX_LIMIT);
+  }
+  const params: unknown[] = [];
+  const where: string[] = [];
+  if (entity) { where.push("entity = ?"); params.push(entity); }
+  const sql = `SELECT a.id, a.actor_user_id, COALESCE(u.display_name, u.email) as actor_name, a.action, a.entity, a.record_id, a.old_value, a.new_value, a.created_at
+    FROM audit_logs a
+    LEFT JOIN users u ON u.id = a.actor_user_id
+    ${where.length ? "WHERE " + where.join(" AND ") : ""}
+    ORDER BY a.created_at DESC, a.id DESC
+    LIMIT ?`;
+  params.push(limit);
+  const rows = await query(sql, params);
+  return c.json(rows);
 });
 
 // ── CSV export ─────────────────────────────────────────────────────
