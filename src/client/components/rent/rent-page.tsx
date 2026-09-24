@@ -98,11 +98,9 @@ export function RentPage() {
           <Button variant="secondary" onClick={() => downloadCsv(`/api/export/rent-ledger?period=${encodeURIComponent(period)}&filename=${encodeURIComponent(tf("export.rent_filename", period))}`, tf("export.rent_filename", period))}>
             <Download className="h-4 w-4" /> {tf("export.button")}
           </Button>
-          {charges.length > 0 && (
-            <Button onClick={generate} disabled={generating}>
-              <Sparkles className="h-4 w-4" /> {tf("rent.generate")}
-            </Button>
-          )}
+          <Button onClick={generate} disabled={generating}>
+            <Sparkles className="h-4 w-4" /> {tf("rent.generate")}
+          </Button>
         </>
       }
     >

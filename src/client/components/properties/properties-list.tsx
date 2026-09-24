@@ -28,12 +28,10 @@ export function PropertiesList({ navigate }: { navigate: (to: string) => void })
           <Button variant="secondary" onClick={() => downloadCsv(`/api/export/properties?filename=${encodeURIComponent(tf("export.properties_filename"))}`, tf("export.properties_filename"))}>
             <Download className="h-4 w-4" /> {tf("export.button")}
           </Button>
-          {properties.length > 0 && (
-            <Button onClick={() => { setEditing(undefined); setDialogOpen(true); }}>
-              <Plus className="h-4 w-4" />
-              {tf("properties.new")}
-            </Button>
-          )}
+          <Button onClick={() => { setEditing(undefined); setDialogOpen(true); }}>
+            <Plus className="h-4 w-4" />
+            {tf("properties.new")}
+          </Button>
         </>
       }
     >

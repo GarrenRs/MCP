@@ -50,11 +50,9 @@ export function TenantsList({ navigate }: { navigate: (to: string) => void }) {
           <Button variant="secondary" onClick={() => downloadCsv(`/api/export/tenants?filename=${encodeURIComponent(tf("export.tenants_filename"))}`, tf("export.tenants_filename"))}>
             <Download className="h-4 w-4" /> {tf("export.button")}
           </Button>
-          {tenants.length > 0 && (
-            <Button onClick={() => setDialogOpen(true)}>
-              <Plus className="h-4 w-4" /> {tf("tenants.new")}
-            </Button>
-          )}
+          <Button onClick={() => setDialogOpen(true)}>
+            <Plus className="h-4 w-4" /> {tf("tenants.new")}
+          </Button>
         </>
       }
       width="max-w-6xl"

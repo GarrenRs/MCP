@@ -60,11 +60,9 @@ export function LeasesPage({ navigate }: { navigate: (to: string) => void }) {
       title={tf("leases.title")}
       meta={tf("leases.meta", leases.length, leases.filter((l) => l.status === "active").length)}
       actions={
-        leases.length > 0 ? (
-          <Button onClick={() => { setEditing(undefined); setDialogOpen(true); }}>
-            <Plus className="h-4 w-4" /> {tf("leases.new")}
-          </Button>
-        ) : null
+        <Button onClick={() => { setEditing(undefined); setDialogOpen(true); }}>
+          <Plus className="h-4 w-4" /> {tf("leases.new")}
+        </Button>
       }
     >
 

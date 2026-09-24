@@ -63,11 +63,9 @@ export function ApplicationsPage() {
       title={tf("applications.title")}
       meta={tf(applications.length === 1 ? "common.record_n" : "common.record_n_plural", applications.length)}
       actions={
-        applications.length > 0 ? (
-          <Button onClick={() => { setEditing(undefined); setDialogOpen(true); }}>
-            <Plus className="h-4 w-4" /> {tf("applications.new")}
-          </Button>
-        ) : null
+        <Button onClick={() => { setEditing(undefined); setDialogOpen(true); }}>
+          <Plus className="h-4 w-4" /> {tf("applications.new")}
+        </Button>
       }
       width="max-w-6xl"
     >

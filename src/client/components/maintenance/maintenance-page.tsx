@@ -78,11 +78,9 @@ export function MaintenancePage() {
           )}
         </>}
       actions={
-        filtered.length > 0 ? (
-          <Button onClick={() => { setEditing(undefined); setDialogOpen(true); }}>
-            <Plus className="h-4 w-4" /> {tf("maintenance.new")}
-          </Button>
-        ) : null
+        <Button onClick={() => { setEditing(undefined); setDialogOpen(true); }}>
+          <Plus className="h-4 w-4" /> {tf("maintenance.new")}
+        </Button>
       }
     >
 
