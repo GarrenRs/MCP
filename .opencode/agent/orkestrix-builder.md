@@ -20,6 +20,13 @@ Rules:
 - Never expand scope without explicit instruction.
 - Preserve existing behavior unless the active phase explicitly changes it.
 - Run relevant tests and typecheck before declaring completion.
+- A structural change in this layer, and every directly dependent effect it requires in another
+  layer, must be implemented, verified, reviewed, and closed within this same layer workstream
+  before that workstream is declared CLOSED. Verification covers tests, plus browser/runtime
+  verification when the dependent effect is user-visible or runtime-visible. Never defer a
+  directly dependent effect to a later phase; unrelated improvements stay out of scope; a
+  verification limitation stays recorded as a limitation and is never converted into PASS by
+  inference.
 - Inspect git diff before commit.
 - Do not commit unless explicitly instructed by the phase prompt.
 - Never touch Docs.zip.
