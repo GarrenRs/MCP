@@ -1,7 +1,7 @@
 # UI FINALIZATION MASTER PLAN — ORKESTRIX Property System
 
 **Status**: AUTHORITATIVE PLANNING DOCUMENT for the post-P12 UI Finalization phase
-(Phase A below). Supersedes `Docs/13` / `13b` / `13c` **as future execution guidance**
+(Phase A below). Supersedes `Docs/plans/13` / `13b` / `13c` **as future execution guidance**
 (those plans were fully executed as P1–P12 and remain as historical evidence).
 
 This document is a **plan only**. It does not modify application code, the database, or the API.
@@ -205,7 +205,7 @@ final release candidate. **None of these are started by UI Finalization.**
 - Playwright browser QA passes (3 widths × FR/AR) for Login, Users, Audit, and all P1–P12 routes.
 - `pnpm typecheck` exits 0; full `pnpm test` green.
 - Reviewer verdict = PASS.
-- Execution log at `Docs/execution/ui-finalization.md` exists and is committed.
+- Execution log at `Docs/execution/ui-finalization/ui-finalization.md` exists and is committed.
 - Exactly **one** UI-finalization commit; P12 (`4b7177d`) untouched; no amend of prior phases.
 
 ## I. DEFINITION OF DONE — COMMERCIAL / DEPLOYMENT CLOSURE

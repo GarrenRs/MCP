@@ -1,6 +1,6 @@
 # Execution Log — P12: Audit Trail
 
-Records the execution of phase P12 from `Docs/13-v1-implementation-plan.md` (P12 section) —
+Records the execution of phase P12 from `Docs/plans/13-v1-implementation-plan.md` (P12 section) —
 an immutable accountability record of sensitive writes and destructive actions, tied to the P5
 authenticated user. Authored by the execution coordinator.
 

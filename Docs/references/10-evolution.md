@@ -1,9 +1,9 @@
 # 10 — Evolution Guidance (scope, safe changes, effort)
 
 Objective: preserve the working core and guide it safely toward the localized commercial
-**ORKESTRIX Property System** (V1, per `Docs/14`), **without redesigning or expanding the product
+**ORKESTRIX Property System** (V1, per `Docs/current/14`), **without redesigning or expanding the product
 beyond what V1 needs.** All recommendations here are advisory; the authoritative execution order
-is the V1 plan in `Docs/13`, `13b`, `13c` (`SUPERSEDES` section E's ordering — the plan adds
+is the V1 plan in `Docs/plans/13`, `13b`, `13c` (`SUPERSEDES` section E's ordering — the plan adds
 documented prerequisites P1–P2 and sequencing).
 
 ## B. Core functionality to preserve (never break)

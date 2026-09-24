@@ -1,7 +1,7 @@
 # Execution Log — P4: Algerian Localization Content
 
-Records the execution of phase P4 from `Docs/13-v1-implementation-plan.md` (P4 section)
-and `Docs/13c-v1-implementation-plan.md` (order step 4). Authored by the execution
+Records the execution of phase P4 from `Docs/plans/13-v1-implementation-plan.md` (P4 section)
+and `Docs/plans/13c-v1-implementation-plan.md` (order step 4). Authored by the execution
 agent (systemorkestrix-pixel) on 2026-09-20.
 
 ## Status

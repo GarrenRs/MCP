@@ -2,8 +2,9 @@
 
 Commercially usable Algerian local version — phases P1–P6. Part 2: `13b` (P7–P12 + order).
 
-Baseline: git `main` @ `98bfc4a`. Sources: `Docs/00–12`. All changes follow the safe-change rules
-from `Docs/10-evolution.md`: additive schema only, COUNT-guarded seeds, no breaking HTTP contracts,
+Baseline: git `main` @ `98bfc4a`. Sources: `Docs/00-README.md`, `Docs/references/01–12`,
+`Docs/archive/11`. All changes follow the safe-change rules
+from `Docs/references/10-evolution.md`: additive schema only, COUNT-guarded seeds, no breaking HTTP contracts,
 keep zod + `@clawnify/db` guards, typecheck + financial tests gated, new seeds opt-in.
 
 **This document is a plan only — no application code is modified by this doc.**
@@ -61,7 +62,7 @@ pass (deferred after FR V1); multi-occupant lease UI (`lease_tenants` stays dead
    (error-code mapping), `src/server/index.ts` (`DEFAULT_SETTINGS` + error helpers),
    `src/client/lib/utils.ts` (explicit-locale `formatDate`/`formatMoney`/`formatPeriod`),
    `src/client/context.tsx`, `src/client/components/settings/settings-page.tsx`,
-   new `src/client/i18n/en.json` (+ `ar.json` placeholder), `Docs/08` reviewed.
+   new `src/client/i18n/en.json` (+ `ar.json` placeholder), `Docs/references/08` reviewed.
 3. **Database changes**: none (`settings` is key/value; new defaults are code-level).
 4. **API changes**: `GET /api/settings` returns `locale`/`currency` (additive, merged like today);
    `PUT /api/settings` accepts them; error responses ship stable `code` + `message` **while
@@ -80,7 +81,7 @@ pass (deferred after FR V1); multi-occupant lease UI (`lease_tenants` stays dead
 2. **Files/modules affected**: `src/client/i18n/fr.json`, `src/client/components/**`,
    `src/client/lib/utils.ts` (fraction map; DZD whole-dinar default), wilaya/commune widgets
    (static 58-wilaya list), `src/client/components/properties/*` (+ dialogs), `index.html`
-   (`lang="fr"` + title/meta), `Docs/08` update.
+   (`lang="fr"` + title/meta), `Docs/references/08` update.
 3. **Database changes**: additive columns via P2 migration: `properties.country TEXT`,
    `properties.wilaya TEXT`, `properties.commune TEXT` (nullable, `ALTER TABLE ADD COLUMN`; keep
    `state`/`zip` untouched). Demo-row defaults opt-in only.

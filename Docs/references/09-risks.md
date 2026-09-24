@@ -17,7 +17,7 @@ A regression here loses money data.
 ## R3. Database migrations unversioned & schema.sql is DDL-only — HIGH `[INFERENCE]`
 No migration ledger for this app; additive changes are safe, destructive/altered columns are not.
 `@clawnify/db` documents a Drizzle/drizzle-kit path that isn't adopted.
-> Direction: for commercial V1 (ORKESTRIX Property System) the plan in `Docs/13` P2 selects a
+> Direction: for commercial V1 (ORKESTRIX Property System) the plan in `Docs/plans/13` P2 selects a
 > `schema_migrations` table with an additive runner.
 
 ## R4. Local disk exhaustion (C: has 0 free bytes) — HIGH `[VERIFIED environment]`

@@ -1,7 +1,7 @@
 # Execution Log — P1: Environment & Test Foundation
 
-Records the execution of phase P1 from `Docs/13-v1-implementation-plan.md` (P1 section) and
-`Docs/13c-v1-implementation-plan.md` (order step 1). Authored by the execution agent
+Records the execution of phase P1 from `Docs/plans/13-v1-implementation-plan.md` (P1 section) and
+`Docs/plans/13c-v1-implementation-plan.md` (order step 1). Authored by the execution agent
 (systemorkestrix-pixel) on 2026-09-20.
 
 ## Status

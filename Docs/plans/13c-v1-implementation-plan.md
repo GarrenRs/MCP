@@ -1,6 +1,6 @@
 # 13c — V1 Implementation Plan (Part 3): Phases P10–P12, Dependencies, Order
 
-Continues `Docs/13b-v1-implementation-plan.md` (P7–P9).
+Continues `Docs/plans/13b-v1-implementation-plan.md` (P7–P9).
 
 ## P10 — Applications UI
 

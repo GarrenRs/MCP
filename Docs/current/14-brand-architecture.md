@@ -21,12 +21,12 @@ software, "Systems", SaaS, cloud, or any single category.
 ## Current Product
 
 **ORKESTRIX Property System** — the commercial, localized property-management product. Target V1:
-Algerian market, French (`fr-DZ`) UI, DZD currency, per `Docs/13`–`13c`.
+Algerian market, French (`fr-DZ`) UI, DZD currency, per `Docs/plans/13`–`13c`.
 
 ## Upstream / Open Source Origin
 
 **OpenProperty** — the MIT-licensed open-source foundation this repo contains: source audit
-baseline commit `98bfc4a`, stack as documented in `Docs/01`, plan source for V1.
+baseline commit `98bfc4a`, stack as documented in `Docs/references/01`, plan source for V1.
 
 ## Relationship
 
@@ -79,10 +79,10 @@ product line is not tied to property management.
 ## Current path position
 
 ```
-SOURCE AUDIT            → complete (Docs/00–12, baseline 98bfc4a)
-DOCUMENTATION BASELINE  → complete (Docs/13–13c V1 plan)
-COMMERCIAL BRAND ARCH.  → this document (Docs/14)
-V1 IMPLEMENTATION PLAN  → defined (P1–P12, Docs/13c order)
+SOURCE AUDIT            → complete (Docs/references/01–12 + Docs/archive/11, baseline 98bfc4a)
+DOCUMENTATION BASELINE  → complete (Docs/plans/13–13c V1 plan)
+COMMERCIAL BRAND ARCH.  → this document (Docs/current/14)
+V1 IMPLEMENTATION PLAN  → defined (P1–P12, Docs/plans/13c order)
 P1 TEST FOUNDATION      → next (not started)
 P2 MIGRATION LEDGER     → pending
 P3 I18N / SETTINGS / ERROR CODES → pending
@@ -92,6 +92,6 @@ P6–P12                  → pending
 COMMERCIAL VALIDATION   → pending
 ```
 
-The V1 plan (Docs/13–13c) executes on the OpenProperty codebase and delivers the ORKESTRIX
-Property System. Docs/13/13b/13c remain authoritative for execution order — this document does
+The V1 plan (Docs/plans/13–13c) executes on the OpenProperty codebase and delivers the ORKESTRIX
+Property System. Docs/plans/13/13b/13c remain authoritative for execution order — this document does
 not change the plan.

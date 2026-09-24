@@ -1,6 +1,6 @@
 # Execution Log — P11: CSV Export
 
-Records the execution of phase P11 from `Docs/13c-v1-implementation-plan.md` (section "## P11 — CSV export",
+Records the execution of phase P11 from `Docs/plans/13c-v1-implementation-plan.md` (section "## P11 — CSV export",
 order step 11). Executed as a multi-agent workflow (explorer → builder → tester → reviewer) on 2026-09-22,
 followed by a closure pass (Content-Disposition filename hardening + git/documentation reconciliation) and
 a corrective closure on 2026-09-23 (Export button visibility in empty datasets; see "Corrective closure"

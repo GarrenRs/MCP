@@ -5,7 +5,7 @@ Consolidated triage of the audit evidence. The baseline is the working tree at c
 
 > **AUTHORITATIVE PROJECT DECISION (not a source-code fact):** the commercial product identity
 > is **ORKESTRIX Property System**; **OpenProperty** is its upstream open-source foundation.
-> See `Docs/14-brand-architecture.md`. All `[VERIFIED]` statements below concern the OpenProperty
+> See `Docs/current/14-brand-architecture.md`. All `[VERIFIED]` statements below concern the OpenProperty
 > foundation code as observed; they make no claim about the commercial product.
 
 ## VERIFIED FACTS (observed directly)
@@ -54,7 +54,7 @@ Consolidated triage of the audit evidence. The baseline is the working tree at c
 
 - Adopt auth + single-tenant roles before commercial V1 (R1); then applications UI, charge-admin
   UI, `completed_at` UI, occupancy/overdue reconciliation, CSV export, i18n Tier 1–2, migrations
-  ledger, and financial tests (R2), in that order. Full scope in `10-evolution.md`.
+  ledger, and financial tests (R2), in that order. Full scope in `Docs/references/10-evolution.md`.
 - Free disk space on C: (or relocate cache/state/temp) before further dev on this machine (R4).
 - Validate currency server-side; replace free-text with a select (R8).
 - Introduce `schema_migrations` or drizzle-kit before any destructive schema change (R3).

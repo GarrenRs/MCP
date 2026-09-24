@@ -1,7 +1,7 @@
 # Execution Log — P3: i18n Infrastructure, Settings & Error Codes
 
-Records the execution of phase P3 from `Docs/13-v1-implementation-plan.md` (P3 section) and
-`Docs/13c-v1-implementation-plan.md` (order step 3). Authored by the execution agent
+Records the execution of phase P3 from `Docs/plans/13-v1-implementation-plan.md` (P3 section) and
+`Docs/plans/13c-v1-implementation-plan.md` (order step 3). Authored by the execution agent
 (systemorkestrix-pixel) on 2026-09-20.
 
 ## Status
@@ -51,7 +51,7 @@ Delivered:
   reach the user verbatim (legacy behavior preserved); the other seven codes map through `en.json`.
 - **Additive-only server change.** `parseJson` failures now carry a `code` (`invalid_json` /
   `validation`) threaded into the response; route bodies are otherwise untouched.
-- Per the safe-change rules (`Docs/10-evolution.md`), no schema, migration, auth, or
+- Per the safe-change rules (`Docs/references/10-evolution.md`), no schema, migration, auth, or
   financial-rule changes were made in this phase.
 
 ## Verification evidence

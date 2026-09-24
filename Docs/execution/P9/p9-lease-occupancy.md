@@ -1,6 +1,6 @@
 # Execution Log — P9: Lease ↔ Unit Occupancy Integrity
 
-Records the execution of phase P9 from `Docs/13-v1-implementation-plan.md` (P9 section). Authored by
+Records the execution of phase P9 from `Docs/plans/13-v1-implementation-plan.md` (P9 section). Authored by
 the execution agent (systemorkestrix-pixel) on 2026-09-22.
 
 ## Status

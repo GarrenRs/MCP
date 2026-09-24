@@ -1,7 +1,7 @@
 # Execution Log — P10: Applications UI
 
-Records the execution of phase P10 from `Docs/13-v1-implementation-plan.md` (P10 section) and
-`Docs/13c-v1-implementation-plan.md` (order step 5). Executed as a multi-agent workflow
+Records the execution of phase P10 from `Docs/plans/13-v1-implementation-plan.md` (P10 section) and
+`Docs/plans/13c-v1-implementation-plan.md` (order step 5). Executed as a multi-agent workflow
 (explorer → builder → tester → reviewer) on 2026-09-22.
 
 ## Status

@@ -1,7 +1,7 @@
 # Execution Log — P2: Migration Ledger
 
-Records the execution of phase P2 from `Docs/13-v1-implementation-plan.md` (P2 section) and
-`Docs/13c-v1-implementation-plan.md` (order step 2). Authored by the execution agent
+Records the execution of phase P2 from `Docs/plans/13-v1-implementation-plan.md` (P2 section) and
+`Docs/plans/13c-v1-implementation-plan.md` (order step 2). Authored by the execution agent
 (systemorkestrix-pixel) on 2026-09-20.
 
 ## Status
@@ -31,7 +31,7 @@ Delivered:
 - Base DDL (the existing idempotent `schema.sql`) IS the v1 migration, recorded as `0001`.
   Fresh DBs and pre-existing DBs therefore converge to the same schema + ledger state.
 - First real additive migration must start at version `0002` and be additive-only, per the
-  safe-change rules from `Docs/10-evolution.md` (no drops, no column removals).
+  safe-change rules from `Docs/references/10-evolution.md` (no drops, no column removals).
 
 ## Verification evidence
 

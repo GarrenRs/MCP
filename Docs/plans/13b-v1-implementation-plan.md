@@ -1,6 +1,6 @@
 # 13b — V1 Implementation Plan (Part 2): Phases P7–P9
 
-Continues `Docs/13-v1-implementation-plan.md` (prerequisites, out-of-scope, P1–P6).
+Continues `Docs/plans/13-v1-implementation-plan.md` (prerequisites, out-of-scope, P1–P6).
 
 ## P7 — Work-order completion stamp
 

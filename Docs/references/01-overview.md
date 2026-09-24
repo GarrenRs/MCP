@@ -2,7 +2,7 @@
 
 ## Product identity
 
-Identity split — see `Docs/14-brand-architecture.md` `[PROJECT DECISION]`:
+Identity split — see `Docs/current/14-brand-architecture.md` `[PROJECT DECISION]`:
 
 - **OpenProperty** — the **upstream / open-source technical foundation** this repo contains
   (MIT-licensed, built on the Clawnify template format). This document's technical content
