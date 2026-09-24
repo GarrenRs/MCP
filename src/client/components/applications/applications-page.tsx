@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { FileText, Phone, Plus, Search } from "lucide-react";
 import { useApp } from "@/context";
-import { formatDate } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
+import { cn, formatDate } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,16 +10,15 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ApplicationDialog } from "./application-dialog";
 import type { Application, ApplicationStatus } from "@/types";
 import { PageShell } from "@/components/page-shell";
+import { EmptyState } from "@/components/empty-state";
 import { tf } from "@/i18n";
 
-type BadgeVariant = "default" | "secondary" | "outline" | "destructive" | "info" | "success" | "warning";
-
-const STATUS_VARIANT: Record<ApplicationStatus, BadgeVariant> = {
-  new: "info",
-  screening: "warning",
-  approved: "success",
-  declined: "destructive",
-  withdrawn: "outline",
+const STATUS_TONE: Record<ApplicationStatus, string> = {
+  new: "tone-info",
+  screening: "tone-warning",
+  approved: "tone-success",
+  declined: "tone-danger",
+  withdrawn: "tone-neutral",
 };
 
 type Filter = ApplicationStatus | "all";
@@ -86,26 +84,19 @@ export function ApplicationsPage() {
             </TabsList>
           </Tabs>
           <div className="relative md:w-72">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input placeholder={tf("applications.search")} className="pl-9" value={q} onChange={(e) => setQ(e.target.value)} />
+            <Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input placeholder={tf("applications.search")} className="ps-9" value={q} onChange={(e) => setQ(e.target.value)} />
           </div>
         </div>
 
         {loading ? (
           <Card className="p-8 text-center text-sm text-muted-foreground">{tf("common.loading")}</Card>
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-2 px-6 py-20 text-center">
-            <FileText className="size-7 text-faint" aria-hidden />
-            <p className="font-medium">{applications.length === 0 ? tf("applications.nothing") : tf("common.no_matches")}</p>
-            <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
-              {applications.length === 0 ? tf("applications.empty_desc") : tf("applications.no_match")}
-            </p>
-            {applications.length === 0 && (
-              <Button className="mt-2" onClick={() => { setEditing(undefined); setDialogOpen(true); }}>
-                <Plus className="mr-1 h-4 w-4" /> {tf("applications.new")}
-              </Button>
-            )}
-          </div>
+          <EmptyState
+            icon={<FileText className="size-7" />}
+            title={applications.length === 0 ? tf("applications.nothing") : tf("common.no_matches")}
+            description={applications.length === 0 ? tf("applications.empty_desc") : tf("applications.no_match")}
+          />
         ) : (
           <Card className="overflow-hidden">
             <Table>
@@ -160,9 +151,9 @@ export function ApplicationsPage() {
                       )}
                     </TableCell>
                     <TableCell>
-                      <Badge variant={STATUS_VARIANT[a.status] ?? "secondary"} className="capitalize">
+                      <span className={cn("badge-tone capitalize", STATUS_TONE[a.status] ?? "tone-neutral")}>
                         {tf(`application_status.${a.status}`)}
-                      </Badge>
+                      </span>
                     </TableCell>
                     <TableCell>
                       <span className="text-sm text-muted-foreground">{formatDate(a.created_at)}</span>

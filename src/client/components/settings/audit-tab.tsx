@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
+import { FileText } from "lucide-react";
 import { api } from "@/api";
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { EmptyState } from "@/components/empty-state";
 import { formatDate } from "@/lib/utils";
 import { t } from "@/i18n";
 
@@ -64,12 +66,12 @@ export function AuditTab() {
     <Card>
       <div className="border-b p-4">
         <h2 className="text-sm font-semibold">{t("audit.tab")}</h2>
-        <p className="text-xs text-muted-foreground">{t("audit.empty")}</p>
+        <p className="text-xs text-muted-foreground">{t("audit.description")}</p>
       </div>
       {loading ? (
-        <div className="p-8 text-center text-sm text-muted-foreground">{t("audit.loading")}</div>
+        <Card className="p-8 text-center text-sm text-muted-foreground">{t("audit.loading")}</Card>
       ) : rows.length === 0 ? (
-        <div className="p-8 text-center text-sm text-muted-foreground">{t("audit.empty")}</div>
+        <EmptyState icon={<FileText className="size-8" />} title={t("audit.empty")} />
       ) : (
         <div className="overflow-x-auto">
           <Table>

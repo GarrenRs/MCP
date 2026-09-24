@@ -165,7 +165,7 @@ export function App() {
             {authEnabled && sessionUser && (
               <div className="flex flex-col gap-1 p-2 text-xs text-muted-foreground">
                 <span>{sessionUser.email}</span>
-                <button className="text-left hover:underline" onClick={handleLogout}>{t("auth.logout")}</button>
+                <button className="text-start hover:underline" onClick={handleLogout}>{t("auth.logout")}</button>
               </div>
             )}
           </AppNav>

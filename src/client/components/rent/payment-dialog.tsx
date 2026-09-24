@@ -111,7 +111,7 @@ export function PaymentDialog({ open, onOpenChange, charge, onSaved }: Props) {
         </div>
 
         <div className="grid gap-3">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <Label htmlFor="pay-amount">{tf("payments.amount")}</Label>
               <Input id="pay-amount" type="number" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} />
@@ -121,7 +121,7 @@ export function PaymentDialog({ open, onOpenChange, charge, onSaved }: Props) {
               <Input id="pay-date" type="date" value={paidAt} onChange={(e) => setPaidAt(e.target.value)} />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <Label>{tf("payments.method")}</Label>
               <Select value={method} onValueChange={(v) => setMethod(v as PaymentMethod)}>
@@ -168,9 +168,9 @@ export function PaymentDialog({ open, onOpenChange, charge, onSaved }: Props) {
         )}
 
         <DialogFooter className="mt-2">
-          <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>{tf("common.close")}</Button>
+          <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>{tf("common.cancel")}</Button>
           <Button type="button" onClick={save} disabled={saving || parseFloat(amount) <= 0}>
-            {tf("payments.title")}
+            {tf("payments.record_payment")}
           </Button>
         </DialogFooter>
       </DialogContent>

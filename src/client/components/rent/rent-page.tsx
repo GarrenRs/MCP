@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, Download, Pencil, Receipt, Sparkles } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Pencil, Sparkles, Wallet } from "lucide-react";
 import { useApp } from "@/context";
 import { addMonths, cn, currentPeriod, formatDate, formatMoney, formatPeriod } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -10,15 +9,16 @@ import { PaymentDialog } from "./payment-dialog";
 import { ChargeEditDialog } from "./charge-edit-dialog";
 import type { ChargeStatus, RentCharge } from "@/types";
 import { PageShell } from "@/components/page-shell";
+import { EmptyState } from "@/components/empty-state";
 import { tf } from "@/i18n";
 import { downloadCsv } from "@/api";
 
 const STATUS_TONE: Record<ChargeStatus, string> = {
-  open: "bg-info-tint text-info",
-  partial: "bg-warning-tint text-warning",
-  paid: "bg-success-tint text-success",
-  overdue: "bg-destructive-tint text-destructive",
-  waived: "bg-muted text-muted-foreground",
+  open: "tone-info",
+  partial: "tone-warning",
+  paid: "tone-success",
+  overdue: "tone-danger",
+  waived: "tone-neutral",
 };
 
 export function RentPage() {
@@ -77,7 +77,7 @@ export function RentPage() {
               action and names its current value rather than saying "Period". */}
           <div className="inline-flex items-center rounded-full bg-muted p-[0.1875rem]">
             <Button variant="ghost" size="icon" onClick={() => setPeriod((p) => addMonths(p, -1))} aria-label={tf("rent.prev_month")}>
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="h-4 w-4 rtl:rotate-180" />
             </Button>
             <button
               type="button"
@@ -92,7 +92,7 @@ export function RentPage() {
               {formatPeriod(period)}
             </button>
             <Button variant="ghost" size="icon" onClick={() => setPeriod((p) => addMonths(p, 1))} aria-label={tf("rent.next_month")}>
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-4 w-4 rtl:rotate-180" />
             </Button>
           </div>
           <Button variant="secondary" onClick={() => downloadCsv(`/api/export/rent-ledger?period=${encodeURIComponent(period)}&filename=${encodeURIComponent(tf("export.rent_filename", period))}`, tf("export.rent_filename", period))}>
@@ -127,21 +127,12 @@ export function RentPage() {
               <div key={i} className="flex h-11 items-center gap-4 px-3" aria-hidden>
                 <div className="h-2.5 w-32 animate-pulse rounded-full bg-muted" />
                 <div className="h-2.5 w-24 animate-pulse rounded-full bg-muted" />
-                <div className="ml-auto h-2.5 w-16 animate-pulse rounded-full bg-muted" />
+                <div className="ms-auto h-2.5 w-16 animate-pulse rounded-full bg-muted" />
               </div>
             ))}
           </Card>
         ) : charges.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-2 px-6 py-20 text-center">
-            <Receipt className="size-7 text-faint" aria-hidden />
-            <p className="font-medium">{tf("rent.no_charges", formatPeriod(period))}</p>
-            <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
-              {tf("rent.no_charges_desc")}
-            </p>
-            <Button className="mt-2" onClick={generate} disabled={generating}>
-              <Sparkles className="size-4" /> {tf("rent.generate")}
-            </Button>
-          </div>
+          <EmptyState icon={<Wallet className="size-7" />} title={tf("rent.no_charges", formatPeriod(period))} description={tf("rent.no_charges_desc")} />
         ) : (
           <Card className="overflow-hidden">
             <Table>
@@ -150,9 +141,9 @@ export function RentPage() {
                   <TableHead>{tf("rent.property_unit")}</TableHead>
                   <TableHead>{tf("rent.tenant")}</TableHead>
                   <TableHead>{tf("rent.due")}</TableHead>
-                  <TableHead className="text-right">{tf("rent.charged")}</TableHead>
-                  <TableHead className="text-right">{tf("rent.paid")}</TableHead>
-                  <TableHead className="text-right">{tf("rent.balance")}</TableHead>
+                  <TableHead className="text-end">{tf("rent.charged")}</TableHead>
+                  <TableHead className="text-end">{tf("rent.paid")}</TableHead>
+                  <TableHead className="text-end">{tf("rent.balance")}</TableHead>
                   <TableHead>{tf("rent.status")}</TableHead>
                   <TableHead></TableHead>
                 </TableRow>
@@ -177,13 +168,13 @@ export function RentPage() {
                         )}
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">{formatDate(c.due_date)}</TableCell>
-                      <TableCell className="text-right tabular-nums">{formatMoney(c.amount, app.settings.currency)}</TableCell>
-                      <TableCell className="text-right tabular-nums">{formatMoney(c.amount_paid, app.settings.currency)}</TableCell>
-                      <TableCell className={cn("text-right tabular-nums font-medium", balance > 0 && "text-warning", c.status === "overdue" && "text-destructive")}>
+                      <TableCell className="text-end tabular-nums">{formatMoney(c.amount, app.settings.currency)}</TableCell>
+                      <TableCell className="text-end tabular-nums">{formatMoney(c.amount_paid, app.settings.currency)}</TableCell>
+                      <TableCell className={cn("text-end tabular-nums font-medium", balance > 0 && "text-warning", c.status === "overdue" && "text-destructive")}>
                         {formatMoney(balance, app.settings.currency)}
                       </TableCell>
                       <TableCell>
-                        <span className={cn("inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold capitalize", STATUS_TONE[c.status])}>
+                        <span className={cn("badge-tone capitalize", STATUS_TONE[c.status] ?? "tone-neutral")}>
                           {tf(`charge_status.${c.status}`)}
                         </span>
                       </TableCell>

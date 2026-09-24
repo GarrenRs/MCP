@@ -2,10 +2,10 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, Mail, Pencil, Phone, User } from "lucide-react";
 import { useApp } from "@/context";
 import { api } from "@/api";
-import { formatDate, formatMoney } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
+import { cn, formatDate, formatMoney } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { EmptyState } from "@/components/empty-state";
 import { TenantDialog } from "./tenant-dialog";
 import type { Lease, Tenant } from "@/types";
 import { PageShell } from "@/components/page-shell";
@@ -40,7 +40,11 @@ export function TenantPage({ id, navigate }: { id: number; navigate: (to: string
   }, [id]);
 
   if (loading) {
-    return <div className="flex flex-1 items-center justify-center text-muted-foreground">{tf("tenants.loading")}</div>;
+    return (
+      <div className="flex flex-1 items-center justify-center">
+        <Card className="p-8 text-center text-sm text-muted-foreground">{tf("tenants.loading")}</Card>
+      </div>
+    );
   }
   if (!tenant) {
     return (
@@ -61,7 +65,7 @@ export function TenantPage({ id, navigate }: { id: number; navigate: (to: string
           onClick={() => navigate("/tenants")}
           className="inline-flex items-center gap-1.5 text-[1.375rem] font-semibold leading-tight tracking-[-0.01em] transition-colors duration-150 hover:text-muted-foreground"
         >
-          <ArrowLeft className="size-4 text-muted-foreground" aria-hidden />
+          <ArrowLeft className="size-4 text-muted-foreground rtl:rotate-180" aria-hidden />
           {tf("tenants.title")}
         </button>
       }
@@ -81,7 +85,7 @@ export function TenantPage({ id, navigate }: { id: number; navigate: (to: string
             </div>
           </div>
           <Button variant="outline" onClick={() => setEditing(true)}>
-            <Pencil className="mr-1 h-4 w-4" /> {tf("common.edit")}
+            <Pencil className="me-1 h-4 w-4" /> {tf("common.edit")}
           </Button>
         </header>
 
@@ -120,7 +124,7 @@ export function TenantPage({ id, navigate }: { id: number; navigate: (to: string
         <Card className="p-5">
           <h2 className="mb-3 text-[1.0625rem] font-semibold leading-tight">{tf("tenants.lease_history")}</h2>
           {leases.length === 0 ? (
-            <p className="text-sm text-muted-foreground">{tf("tenants.no_leases")}</p>
+            <EmptyState title={tf("tenants.no_leases")} className="py-8" />
           ) : (
             <ul className="divide-y">
               {leases.map((l) => (
@@ -133,7 +137,7 @@ export function TenantPage({ id, navigate }: { id: number; navigate: (to: string
                       {formatDate(l.start_date)} → {formatDate(l.end_date)} · {formatMoney(l.monthly_rent, app.settings.currency)}{tf("common.per_month")}
                     </p>
                   </div>
-                  <Badge variant={l.status === "active" ? "default" : "secondary"} className="capitalize">{tf(`lease_status.${l.status}`)}</Badge>
+                  <span className={cn("badge-tone capitalize", l.status === "active" ? "tone-success" : "tone-neutral")}>{tf(`lease_status.${l.status}`)}</span>
                 </li>
               ))}
             </ul>

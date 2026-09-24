@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { ClipboardList, Plus, Search } from "lucide-react";
+import { FileText, Plus, Search } from "lucide-react";
 import { useApp } from "@/context";
 import { cn, daysBetween, formatDate, formatMoney, toIsoDate } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,13 +10,14 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LeaseDialog } from "./lease-dialog";
 import type { Lease, LeaseStatus } from "@/types";
 import { PageShell } from "@/components/page-shell";
+import { EmptyState } from "@/components/empty-state";
 import { tf } from "@/i18n";
 
 const STATUS_TONE: Record<string, string> = {
-  active: "default",
-  upcoming: "secondary",
-  ended: "outline",
-  cancelled: "outline",
+  active: "tone-success",
+  upcoming: "tone-info",
+  ended: "tone-neutral",
+  cancelled: "tone-neutral",
 };
 
 export function LeasesPage({ navigate }: { navigate: (to: string) => void }) {
@@ -78,24 +78,15 @@ export function LeasesPage({ navigate }: { navigate: (to: string) => void }) {
             </TabsList>
           </Tabs>
           <div className="relative md:w-72">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input placeholder={tf("leases.search")} className="pl-9" value={q} onChange={(e) => setQ(e.target.value)} />
+            <Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input placeholder={tf("leases.search")} className="ps-9" value={q} onChange={(e) => setQ(e.target.value)} />
           </div>
         </div>
 
         {loading ? (
           <Card className="p-8 text-center text-sm text-muted-foreground">{tf("common.loading")}</Card>
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-2 px-6 py-20 text-center">
-            <ClipboardList className="size-7 text-faint" aria-hidden />
-            <p className="font-medium">{tf("leases.no_leases")}</p>
-            <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">{leases.length === 0 ? tf("leases.empty_desc") : tf("leases.try_filter")}</p>
-            {leases.length === 0 && (
-              <Button className="mt-2" onClick={() => { setEditing(undefined); setDialogOpen(true); }}>
-                <Plus className="mr-1 h-4 w-4" /> {tf("leases.new")}
-              </Button>
-            )}
-          </div>
+          <EmptyState icon={<FileText className="size-7" />} title={tf("leases.no_leases")} />
         ) : (
           <Card className="overflow-hidden">
             <Table>
@@ -104,7 +95,7 @@ export function LeasesPage({ navigate }: { navigate: (to: string) => void }) {
                   <TableHead>{tf("leases.tenant")}</TableHead>
                   <TableHead>{tf("leases.property_unit")}</TableHead>
                   <TableHead>{tf("leases.term")}</TableHead>
-                  <TableHead className="text-right">{tf("leases.rent")}</TableHead>
+                  <TableHead className="text-end">{tf("leases.rent")}</TableHead>
                   <TableHead>{tf("leases.status")}</TableHead>
                 </TableRow>
               </TableHeader>
@@ -124,7 +115,7 @@ export function LeasesPage({ navigate }: { navigate: (to: string) => void }) {
                           <button
                             type="button"
                             onClick={(e) => { e.stopPropagation(); navigate(`/tenants/${l.primary_tenant_id}`); }}
-                            className="text-left font-medium hover:underline"
+                            className="text-start font-medium hover:underline"
                           >
                             {l.tenant_first_name} {l.tenant_last_name}
                           </button>
@@ -143,11 +134,11 @@ export function LeasesPage({ navigate }: { navigate: (to: string) => void }) {
                         <div className="text-sm">{formatDate(l.start_date)} → {formatDate(l.end_date)}</div>
                         {ending && <div className="text-xs text-warning">{tf("common.ends_in_days", daysToEnd)}</div>}
                       </TableCell>
-                      <TableCell className="text-right tabular-nums">{formatMoney(l.monthly_rent, app.settings.currency)}{tf("common.per_month")}</TableCell>
+                      <TableCell className="text-end tabular-nums">{formatMoney(l.monthly_rent, app.settings.currency)}{tf("common.per_month")}</TableCell>
                       <TableCell>
-                        <Badge variant={(STATUS_TONE[l.status] ?? "secondary") as never} className={cn("capitalize")}>
+                        <span className={cn("badge-tone capitalize", STATUS_TONE[l.status] ?? "tone-neutral")}>
                           {tf(`lease_status.${l.status}`)}
-                        </Badge>
+                        </span>
                       </TableCell>
                     </TableRow>
                   );

@@ -82,10 +82,15 @@
     "collected_this_month": "{0} encaissés ce mois-ci",
     "urgent_count": "{0} urgents",
     "overdue_count": "{0} impayé",
-    "overdue_count_plural": "{0} impayés"
+    "overdue_count_plural": "{0} impayés",
+    "placeholder_property_name": "Domaine Oakwood",
+    "placeholder_address": "123 rue Principale",
+    "placeholder_unit_name": "Unité 1A",
+    "placeholder_work_order_title": "Robinet de cuisine qui fuit",
+    "placeholder_emergency_contact": "Nom · téléphone"
   },
   "unit_status": {
-    "vacant": "Vacant",
+    "vacant": "Vacante",
     "occupied": "Occupé",
     "turnover": "En transition",
     "unavailable": "Indisponible"
@@ -361,6 +366,9 @@
     "delete_title": "Supprimer cette candidature ?",
     "delete_desc": "Les informations du candidat et ses notes seront supprimées. Cette action est irréversible."
   },
+  "users": {
+    "unchanged": "inchangé"
+  },
   "vendors": {
     "title": "Prestataires",
     "meta": "Prestataires et valeurs par défaut de la politique de loyer",
@@ -454,6 +462,7 @@
   },
   "audit": {
     "tab": "Audit",
+    "description": "Modifications récentes sur le système.",
     "empty": "Aucune entrée d'audit pour l'instant.",
     "loading": "Chargement du journal d'audit…",
     "col_time": "Date/Heure",
@@ -482,5 +491,16 @@
       "settings": "Paramètres"
     },
     "no_changes": "—"
+  },
+  "color": {
+    "sky": "Ciel",
+    "emerald": "Émeraude",
+    "amber": "Ambre",
+    "rose": "Rose",
+    "violet": "Violet",
+    "fuchsia": "Fuchsia",
+    "teal": "Sarcelle",
+    "orange": "Orange",
+    "slate": "Ardoise"
   }
 }

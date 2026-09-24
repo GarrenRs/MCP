@@ -149,7 +149,7 @@ export function LeaseDialog({ open, onOpenChange, lease, defaults, onSaved }: Pr
           <DialogTitle>{lease ? tf("leases.edit_title") : tf("leases.new_title")}</DialogTitle>
         </DialogHeader>
         <div className="grid gap-3">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <Label>{tf("leases.unit")}</Label>
               <Select value={String(unitId || "")} onValueChange={(v) => setUnitId(v ? Number(v) : "")}>
@@ -177,7 +177,7 @@ export function LeaseDialog({ open, onOpenChange, lease, defaults, onSaved }: Pr
               </Select>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <Label htmlFor="l-start">{tf("leases.start")}</Label>
               <Input id="l-start" type="date" value={start} onChange={(e) => setStart(e.target.value)} />
@@ -187,7 +187,7 @@ export function LeaseDialog({ open, onOpenChange, lease, defaults, onSaved }: Pr
               <Input id="l-end" type="date" value={end} onChange={(e) => setEnd(e.target.value)} />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <Label htmlFor="l-rent">{tf("leases.monthly_rent")}</Label>
               <Input id="l-rent" type="number" value={rent} onChange={(e) => setRent(e.target.value)} />
@@ -197,7 +197,7 @@ export function LeaseDialog({ open, onOpenChange, lease, defaults, onSaved }: Pr
               <Input id="l-dep" type="number" value={deposit} onChange={(e) => setDeposit(e.target.value)} />
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             <div>
               <Label htmlFor="l-day">{tf("common.rent_due_day")}</Label>
               <Input id="l-day" type="number" min={1} max={31} value={dueDay} onChange={(e) => setDueDay(e.target.value)} />
@@ -223,13 +223,13 @@ export function LeaseDialog({ open, onOpenChange, lease, defaults, onSaved }: Pr
         </div>
         <DialogFooter className="mt-2">
           {lease && (
-            <Button type="button" variant="destructive" className="sm:mr-auto" onClick={() => setConfirming(true)}>
+            <Button type="button" variant="destructive" className="sm:me-auto" onClick={() => setConfirming(true)}>
               {tf("common.delete")}
             </Button>
           )}
           <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>{tf("common.cancel")}</Button>
           <Button type="button" onClick={save} disabled={saving || !unitId || !start || !end}>
-            {lease ? tf("common.save") : tf("leases.new")}
+            {lease ? tf("common.save") : tf("common.create")}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Download, Mail, Phone, Plus, Search, User } from "lucide-react";
+import { Download, Mail, Phone, Plus, Search, Users } from "lucide-react";
 import { useApp } from "@/context";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { TenantDialog } from "./tenant-dialog";
 import type { Tenant } from "@/types";
 import { PageShell } from "@/components/page-shell";
+import { EmptyState } from "@/components/empty-state";
 import { tf } from "@/i18n";
 import { downloadCsv } from "@/api";
 
@@ -60,10 +61,10 @@ export function TenantsList({ navigate }: { navigate: (to: string) => void }) {
     >
 
         <div className="relative">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder={tf("tenants.search")}
-            className="pl-9"
+            className="ps-9"
             value={q}
             onChange={(e) => setQ(e.target.value)}
           />
@@ -72,16 +73,7 @@ export function TenantsList({ navigate }: { navigate: (to: string) => void }) {
         {loading ? (
           <Card className="p-8 text-center text-sm text-muted-foreground">{tf("common.loading")}</Card>
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-2 px-6 py-20 text-center">
-            <User className="size-7 text-faint" aria-hidden />
-            <p className="font-medium">{tenants.length === 0 ? tf("tenants.no_tenants") : tf("common.no_matches")}</p>
-            <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">{tenants.length === 0 ? tf("tenants.empty_desc") : tf("tenants.try_search")}</p>
-            {tenants.length === 0 && (
-              <Button className="mt-2" onClick={() => setDialogOpen(true)}>
-                <Plus className="mr-1 h-4 w-4" /> {tf("tenants.new")}
-              </Button>
-            )}
-          </div>
+          <EmptyState icon={<Users className="size-7" />} title={tenants.length === 0 ? tf("tenants.no_tenants") : tf("common.no_matches")} />
         ) : (
           <Card className="overflow-hidden">
             <Table>

@@ -116,7 +116,7 @@ export function ChargeEditDialog({ open, onOpenChange, charge, onSaved }: Props)
         )}
 
         <div className="grid gap-3">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <Label htmlFor="ce-amount">{tf("charge_edit.amount")}</Label>
               <Input id="ce-amount" type="number" step="0.01" min={0} value={amount} onChange={(e) => setAmount(e.target.value)} />

@@ -129,9 +129,9 @@ export function WorkOrderDialog({ open, onOpenChange, workOrder, defaults, onSav
         <div className="grid gap-3">
           <div>
             <Label htmlFor="wo-title">{tf("work_order.title")}</Label>
-            <Input id="wo-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Leaking kitchen faucet" />
+            <Input id="wo-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder={tf("common.placeholder_work_order_title")} />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <Label>{tf("work_order.property")}</Label>
               <Select value={String(propertyId || "")} onValueChange={(v) => { setPropertyId(v ? Number(v) : ""); setUnitId(""); }}>
@@ -159,7 +159,7 @@ export function WorkOrderDialog({ open, onOpenChange, workOrder, defaults, onSav
             <Label htmlFor="wo-desc">{tf("work_order.description")}</Label>
             <Textarea id="wo-desc" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
           </div>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             <div>
               <Label>{tf("common.priority")}</Label>
               <Select value={priority} onValueChange={(v) => setPriority(v as WorkOrderPriority)}>
@@ -190,7 +190,7 @@ export function WorkOrderDialog({ open, onOpenChange, workOrder, defaults, onSav
               </Select>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <Label htmlFor="wo-sched">{tf("work_order.scheduled_date")}</Label>
               <Input id="wo-sched" type="date" value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)} />
@@ -213,13 +213,13 @@ export function WorkOrderDialog({ open, onOpenChange, workOrder, defaults, onSav
 
         <DialogFooter className="mt-2">
           {workOrder && (
-            <Button type="button" variant="destructive" className="sm:mr-auto" onClick={() => setConfirming(true)}>
+            <Button type="button" variant="destructive" className="sm:me-auto" onClick={() => setConfirming(true)}>
               {tf("common.delete")}
             </Button>
           )}
           <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>{tf("common.cancel")}</Button>
           <Button type="button" onClick={save} disabled={saving || !title.trim()}>
-            {workOrder ? tf("common.save") : tf("work_order.new_title")}
+            {workOrder ? tf("common.save") : tf("common.create")}
           </Button>
         </DialogFooter>
       </DialogContent>

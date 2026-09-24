@@ -97,6 +97,7 @@ export function useAppState() {
   useEffect(() => {
     setLocale(settings.locale);
     document.documentElement.lang = settings.locale || "en";
+    document.documentElement.dir = settings.locale === "ar" ? "rtl" : "ltr";
   }, [settings.locale]);
 
   // Property mutations ─────────────────────────────────────────────

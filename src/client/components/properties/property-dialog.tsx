@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useApp } from "@/context";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ConfirmDelete } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -7,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { tf } from "@/i18n";
+import { t, tf } from "@/i18n";
 import { WILAYAS } from "@/lib/wilayas";
 import type { Property, PropertyType } from "@/types";
 
@@ -27,6 +28,18 @@ const TYPES: { value: PropertyType; label: string }[] = [
 ];
 
 const COLORS = ["sky", "emerald", "amber", "rose", "violet", "fuchsia", "teal", "orange", "slate"];
+
+const SWATCH_BG: Record<string, string> = {
+  sky: "bg-cat-sky-solid",
+  emerald: "bg-cat-emerald-solid",
+  amber: "bg-cat-amber-solid",
+  rose: "bg-cat-rose-solid",
+  violet: "bg-cat-violet-solid",
+  fuchsia: "bg-cat-fuchsia-solid",
+  teal: "bg-cat-teal-solid",
+  orange: "bg-cat-orange-solid",
+  slate: "bg-cat-slate-solid",
+};
 
 export function PropertyDialog({ open, onOpenChange, property, onSaved }: Props) {
   const app = useApp();
@@ -112,9 +125,9 @@ export function PropertyDialog({ open, onOpenChange, property, onSaved }: Props)
         <div className="grid gap-3">
           <div>
             <Label htmlFor="prop-name">{tf("common.name")}</Label>
-            <Input id="prop-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Oakwood Estate" />
+            <Input id="prop-name" value={name} onChange={(e) => setName(e.target.value)} placeholder={tf("common.placeholder_property_name")} />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <Label>{tf("common.type")}</Label>
               <Select value={type} onValueChange={(v) => setType(v as PropertyType)}>
@@ -132,8 +145,8 @@ export function PropertyDialog({ open, onOpenChange, property, onSaved }: Props)
                   {COLORS.map((c) => (
                     <SelectItem key={c} value={c}>
                       <span className="flex items-center gap-2">
-                        <span className={`h-3 w-3 rounded-full bg-${c}-500`} />
-                        <span className="capitalize">{c}</span>
+                        <span className={cn("h-3 w-3 rounded-full", SWATCH_BG[c])} />
+                        <span>{t(`color.${c}`)}</span>
                       </span>
                     </SelectItem>
                   ))}
@@ -143,9 +156,9 @@ export function PropertyDialog({ open, onOpenChange, property, onSaved }: Props)
           </div>
           <div>
             <Label htmlFor="prop-addr">{tf("common.address")}</Label>
-            <Input id="prop-addr" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="123 Main St" />
+            <Input id="prop-addr" value={address} onChange={(e) => setAddress(e.target.value)} placeholder={tf("common.placeholder_address")} />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <Label>{tf("geo.wilaya")}</Label>
               <Select value={wilaya} onValueChange={setWilaya}>
@@ -160,7 +173,7 @@ export function PropertyDialog({ open, onOpenChange, property, onSaved }: Props)
               <Input id="prop-commune" value={commune} onChange={(e) => setCommune(e.target.value)} />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <Label htmlFor="prop-city">{tf("common.city")}</Label>
               <Input id="prop-city" value={city} onChange={(e) => setCity(e.target.value)} />
@@ -170,7 +183,7 @@ export function PropertyDialog({ open, onOpenChange, property, onSaved }: Props)
               <Input id="prop-country" value={country} onChange={(e) => setCountry(e.target.value)} />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <Label htmlFor="prop-state">{tf("common.state")}</Label>
               <Input id="prop-state" value={stateName} onChange={(e) => setStateName(e.target.value)} placeholder="—" />
@@ -192,13 +205,13 @@ export function PropertyDialog({ open, onOpenChange, property, onSaved }: Props)
 
         <DialogFooter className="mt-2">
           {property && (
-            <Button type="button" variant="destructive" className="sm:mr-auto" onClick={() => setConfirming(true)}>
+            <Button type="button" variant="destructive" className="sm:me-auto" onClick={() => setConfirming(true)}>
               {tf("common.delete")}
             </Button>
           )}
           <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>{tf("common.cancel")}</Button>
           <Button type="button" onClick={save} disabled={saving || !name.trim()}>
-            {property ? tf("common.save") : tf("properties.new")}
+            {property ? tf("common.save") : tf("common.create")}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { PropertyDialog } from "./property-dialog";
 import type { Property } from "@/types";
 import { PageShell } from "@/components/page-shell";
+import { EmptyState } from "@/components/empty-state";
 import { tf } from "@/i18n";
 import { downloadCsv } from "@/api";
 
@@ -37,16 +38,7 @@ export function PropertiesList({ navigate }: { navigate: (to: string) => void })
       }
     >
       {properties.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-2 px-6 py-20 text-center">
-            <Building2 className="size-8 text-faint" aria-hidden />
-            <p className="font-medium">{tf("properties.no_properties")}</p>
-            <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
-              {tf("properties.empty_desc")}
-            </p>
-            <Button className="mt-2" onClick={() => { setEditing(undefined); setDialogOpen(true); }}>
-              <Plus className="h-4 w-4" /> {tf("properties.new")}
-            </Button>
-          </div>
+          <EmptyState icon={<Building2 className="size-8" />} title={tf("properties.no_properties")} description={tf("properties.empty_desc")} />
         ) : (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {properties.map((p) => {

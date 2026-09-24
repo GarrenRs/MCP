@@ -82,7 +82,12 @@
     "collected_this_month": "{0} collected this month",
     "urgent_count": "{0} urgent",
     "overdue_count": "{0} charges",
-    "overdue_count_plural": "{0} charges"
+    "overdue_count_plural": "{0} charges",
+    "placeholder_property_name": "Oakwood Estate",
+    "placeholder_address": "123 Main St",
+    "placeholder_unit_name": "Unit 1A",
+    "placeholder_work_order_title": "Leaking kitchen faucet",
+    "placeholder_emergency_contact": "Name · phone"
   },
   "unit_status": {
     "vacant": "Vacant",
@@ -361,6 +366,9 @@
     "delete_title": "Delete this application?",
     "delete_desc": "The applicant's details and notes go with it. This cannot be undone."
   },
+  "users": {
+    "unchanged": "unchanged"
+  },
   "vendors": {
     "title": "Vendors",
     "meta": "Vendors and rent policy defaults",
@@ -454,6 +462,7 @@
   },
   "audit": {
     "tab": "Audit",
+    "description": "Recent changes across the system.",
     "empty": "No audit entries yet.",
     "loading": "Loading audit log…",
     "col_time": "Time",
@@ -482,5 +491,16 @@
       "settings": "Settings"
     },
     "no_changes": "—"
+  },
+  "color": {
+    "sky": "Sky",
+    "emerald": "Emerald",
+    "amber": "Amber",
+    "rose": "Rose",
+    "violet": "Violet",
+    "fuchsia": "Fuchsia",
+    "teal": "Teal",
+    "orange": "Orange",
+    "slate": "Slate"
   }
 }

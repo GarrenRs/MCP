@@ -3,21 +3,36 @@ import { ArrowLeft, Building2, MapPin, Pencil, Plus, Wrench } from "lucide-react
 import { useApp } from "@/context";
 import { api } from "@/api";
 import { cn, colorClasses, formatDate, formatMoney } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { PropertyDialog } from "./property-dialog";
 import { UnitDialog } from "./unit-dialog";
 import { WorkOrderDialog } from "../maintenance/work-order-dialog";
+import { EmptyState } from "@/components/empty-state";
 import type { Property, Unit, WorkOrder } from "@/types";
 import { PageShell } from "@/components/page-shell";
 import { tf } from "@/i18n";
 
 const STATUS_TONE: Record<string, string> = {
-  vacant: "bg-warning-tint text-warning",
-  occupied: "bg-success-tint text-success",
-  turnover: "bg-info-tint text-info",
-  unavailable: "bg-muted text-muted-foreground",
+  vacant: "tone-warning",
+  occupied: "tone-success",
+  turnover: "tone-info",
+  unavailable: "tone-neutral",
+};
+
+const PRIORITY_TONE: Record<string, string> = {
+  urgent: "tone-danger",
+  high: "tone-danger",
+  medium: "tone-warning",
+  normal: "tone-info",
+  low: "tone-neutral",
+};
+
+const WO_STATUS_TONE: Record<string, string> = {
+  open: "tone-info",
+  in_progress: "tone-warning",
+  completed: "tone-success",
+  cancelled: "tone-neutral",
 };
 
 export function PropertyPage({ id, navigate }: { id: number; navigate: (to: string) => void }) {
@@ -56,8 +71,8 @@ export function PropertyPage({ id, navigate }: { id: number; navigate: (to: stri
 
   if (loading) {
     return (
-      <div className="flex flex-1 items-center justify-center text-muted-foreground">
-        {tf("properties.loading")}
+      <div className="flex flex-1 items-center justify-center">
+        <Card className="p-8 text-center text-sm text-muted-foreground">{tf("properties.loading")}</Card>
       </div>
     );
   }
@@ -83,7 +98,7 @@ export function PropertyPage({ id, navigate }: { id: number; navigate: (to: stri
           onClick={() => navigate("/properties")}
           className="inline-flex items-center gap-1.5 text-[1.375rem] font-semibold leading-tight tracking-[-0.01em] transition-colors duration-150 hover:text-muted-foreground"
         >
-          <ArrowLeft className="size-4 text-muted-foreground" aria-hidden />
+          <ArrowLeft className="size-4 text-muted-foreground rtl:rotate-180" aria-hidden />
           {tf("properties.title")}
         </button>
       }
@@ -97,7 +112,7 @@ export function PropertyPage({ id, navigate }: { id: number; navigate: (to: stri
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-[1.375rem] font-semibold leading-tight tracking-[-0.01em]">{property.name}</h1>
-                <span className="rounded-full border bg-muted/30 px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+                <span className="chip">
                   {tf(`property_type.${property.type}`)}
                 </span>
               </div>
@@ -110,7 +125,7 @@ export function PropertyPage({ id, navigate }: { id: number; navigate: (to: stri
             </div>
           </div>
           <Button variant="outline" onClick={() => setEditingProperty(true)}>
-            <Pencil className="mr-1 h-4 w-4" /> {tf("properties.edit_title")}
+            <Pencil className="me-1 h-4 w-4" /> {tf("properties.edit_title")}
           </Button>
         </header>
 
@@ -125,12 +140,12 @@ export function PropertyPage({ id, navigate }: { id: number; navigate: (to: stri
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-[1.0625rem] font-semibold leading-tight">{tf("units.summary_units")}</h2>
             <Button size="sm" onClick={() => { setEditingUnit(undefined); setUnitDialogOpen(true); }}>
-              <Plus className="mr-1 h-4 w-4" /> {tf("units.new")}
+              <Plus className="me-1 h-4 w-4" /> {tf("units.new")}
             </Button>
           </div>
           {units.length === 0 ? (
-            <Card className="p-8 text-center text-sm text-muted-foreground">
-              {tf("units.no_units")}
+            <Card>
+              <EmptyState icon={<Building2 className="size-8" />} title={tf("units.no_units")} />
             </Card>
           ) : (
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
@@ -143,7 +158,7 @@ export function PropertyPage({ id, navigate }: { id: number; navigate: (to: stri
                         {tf("units.bd", u.bedrooms, u.bathrooms, u.sqft ? ` · ${tf("units.sqft")}: ${u.sqft}` : "")}
                       </p>
                     </div>
-                    <span className={cn("inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold capitalize", STATUS_TONE[u.status])}>
+                    <span className={cn("badge-tone capitalize", STATUS_TONE[u.status] ?? "tone-neutral")}>
                       {tf(`unit_status.${u.status}`)}
                     </span>
                   </div>
@@ -153,7 +168,7 @@ export function PropertyPage({ id, navigate }: { id: number; navigate: (to: stri
                       <div className="text-sm font-semibold tabular-nums">{formatMoney(u.market_rent, app.settings.currency)}</div>
                     </div>
                     {u.active_tenant_name && (
-                      <div className="text-right text-xs text-muted-foreground">{u.active_tenant_name}</div>
+                      <div className="text-end text-xs text-muted-foreground">{u.active_tenant_name}</div>
                     )}
                   </div>
                 </Card>
@@ -166,11 +181,13 @@ export function PropertyPage({ id, navigate }: { id: number; navigate: (to: stri
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-[1.0625rem] font-semibold leading-tight">{tf("units.work_orders")}</h2>
             <Button size="sm" variant="outline" onClick={() => setWoDialogOpen(true)}>
-              <Plus className="mr-1 h-4 w-4" /> {tf("units.new_work_order")}
+              <Plus className="me-1 h-4 w-4" /> {tf("units.new_work_order")}
             </Button>
           </div>
           {workOrders.length === 0 ? (
-            <Card className="p-8 text-center text-sm text-muted-foreground">{tf("units.no_work_orders")}</Card>
+            <Card>
+              <EmptyState icon={<Wrench className="size-8" />} title={tf("units.no_work_orders")} />
+            </Card>
           ) : (
             <Card className="divide-y">
               {workOrders.map((w) => (
@@ -185,8 +202,8 @@ export function PropertyPage({ id, navigate }: { id: number; navigate: (to: stri
                     </div>
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
-                    <Badge variant="neutral" className="capitalize">{tf(`priority.${w.priority}`)}</Badge>
-                    <Badge variant="secondary" className="capitalize">{tf(`wo_status.${w.status}`)}</Badge>
+                    <span className={cn("badge-tone capitalize", PRIORITY_TONE[w.priority] ?? "tone-neutral")}>{tf(`priority.${w.priority}`)}</span>
+                    <span className={cn("badge-tone capitalize", WO_STATUS_TONE[w.status] ?? "tone-neutral")}>{tf(`wo_status.${w.status}`)}</span>
                   </div>
                 </div>
               ))}

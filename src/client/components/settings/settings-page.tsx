@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Pencil, Plus, Trash2, Wrench } from "lucide-react";
 import { useApp } from "@/context";
 import { cn, colorClasses } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConfirmDelete } from "@/components/ui/alert-dialog";
 import { Card } from "@/components/ui/card";
@@ -20,19 +19,31 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import type { Vendor, VendorCategory } from "@/types";
 import { PageShell } from "@/components/page-shell";
+import { EmptyState } from "@/components/empty-state";
 import { t, tf } from "@/i18n";
 import { UsersTab } from "./users-tab";
 import { AuditTab } from "./audit-tab";
 
 const COLORS = ["sky", "emerald", "amber", "rose", "violet", "fuchsia", "teal", "orange", "slate"];
 
+const SWATCH_BG: Record<string, string> = {
+  sky: "bg-cat-sky-solid",
+  emerald: "bg-cat-emerald-solid",
+  amber: "bg-cat-amber-solid",
+  rose: "bg-cat-rose-solid",
+  violet: "bg-cat-violet-solid",
+  fuchsia: "bg-cat-fuchsia-solid",
+  teal: "bg-cat-teal-solid",
+  orange: "bg-cat-orange-solid",
+  slate: "bg-cat-slate-solid",
+};
+
 const VENDOR_CATEGORIES: VendorCategory[] = ["plumber", "electrician", "hvac", "handyman", "cleaning", "landscaping", "general"];
 
 export function SettingsPage({ currentUserRole }: { currentUserRole?: string }) {
   return (
     <PageShell
-      title={tf("vendors.title")}
-      meta={tf("vendors.meta")}
+      title={tf("settings.title")}
       width="max-w-5xl"
     >
 
@@ -80,11 +91,11 @@ function VendorsTab() {
           <p className="text-xs text-muted-foreground">{tf("vendors.desc")}</p>
         </div>
         <Button size="sm" onClick={() => { setEditing(undefined); setOpen(true); }}>
-          <Plus className="mr-1 h-4 w-4" /> {tf("vendors.add")}
+          <Plus className="me-1 h-4 w-4" /> {tf("vendors.add")}
         </Button>
       </div>
       {app.vendors.length === 0 ? (
-        <div className="p-8 text-center text-sm text-muted-foreground">{tf("vendors.no_vendors")}</div>
+        <EmptyState icon={<Wrench className="size-8" />} title={tf("vendors.no_vendors")} />
       ) : (
         <ul className="divide-y">
           {app.vendors.map((v) => {
@@ -101,7 +112,7 @@ function VendorsTab() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge variant="neutral" className="capitalize">{tf(`vendor_category.${v.category}`)}</Badge>
+                  <span className="badge-tone tone-neutral capitalize">{tf(`vendor_category.${v.category}`)}</span>
                   <Button size="icon" variant="ghost" onClick={() => { setEditing(v); setOpen(true); }}>
                     <Pencil className="h-4 w-4" />
                   </Button>
@@ -187,7 +198,7 @@ function VendorDialog({
             <Label htmlFor="v-name">{tf("common.name")}</Label>
             <Input id="v-name" value={name} onChange={(e) => setName(e.target.value)} />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <Label>{tf("common.category")}</Label>
               <Select value={category} onValueChange={(v) => setCategory(v as VendorCategory)}>
@@ -205,8 +216,8 @@ function VendorDialog({
                   {COLORS.map((c) => (
                     <SelectItem key={c} value={c}>
                       <span className="flex items-center gap-2">
-                        <span className={`h-3 w-3 rounded-full bg-${c}-500`} />
-                        <span className="capitalize">{c}</span>
+                        <span className={cn("h-3 w-3 rounded-full", SWATCH_BG[c])} />
+                        <span>{t(`color.${c}`)}</span>
                       </span>
                     </SelectItem>
                   ))}
@@ -214,7 +225,7 @@ function VendorDialog({
               </Select>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <Label htmlFor="v-phone">{tf("common.phone")}</Label>
               <Input id="v-phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
@@ -231,8 +242,8 @@ function VendorDialog({
         </div>
         <DialogFooter>
           {vendor && (
-            <Button type="button" variant="destructive" className="sm:mr-auto" onClick={() => setConfirming(true)}>
-              <Trash2 className="mr-1 h-4 w-4" /> {tf("common.delete")}
+            <Button type="button" variant="destructive" className="sm:me-auto" onClick={() => setConfirming(true)}>
+              <Trash2 className="me-1 h-4 w-4" /> {tf("common.delete")}
             </Button>
           )}
           <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>{tf("common.cancel")}</Button>
@@ -298,7 +309,7 @@ function PolicyTab() {
       <p className="mb-4 text-xs text-muted-foreground">
         {tf("vendors.policy_desc")}
       </p>
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:grid-cols-4">
         <div>
           <Label htmlFor="s-day">{tf("vendors.due_day")}</Label>
           <Input id="s-day" type="number" min={1} max={31} value={dueDay} onChange={(e) => setDueDay(e.target.value)} />
@@ -316,7 +327,7 @@ function PolicyTab() {
           <Input id="s-cur" value={currency} onChange={(e) => setCurrency(e.target.value)} placeholder="DZD" />
         </div>
       </div>
-      <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-4">
+      <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3 md:grid-cols-4">
         <div>
           <Label htmlFor="s-locale">{t("settings.locale")}</Label>
           <Select value={locale} onValueChange={setLocale}>

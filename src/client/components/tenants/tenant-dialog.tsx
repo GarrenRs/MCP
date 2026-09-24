@@ -88,7 +88,7 @@ export function TenantDialog({ open, onOpenChange, tenant, onSaved }: Props) {
           <DialogTitle>{tenant ? tf("tenants.edit_title") : tf("tenants.new_title")}</DialogTitle>
         </DialogHeader>
         <div className="grid gap-3">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <Label htmlFor="t-first">{tf("common.first_name")}</Label>
               <Input id="t-first" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
@@ -98,7 +98,7 @@ export function TenantDialog({ open, onOpenChange, tenant, onSaved }: Props) {
               <Input id="t-last" value={lastName} onChange={(e) => setLastName(e.target.value)} />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <Label htmlFor="t-email">{tf("common.email")}</Label>
               <Input id="t-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
@@ -108,17 +108,17 @@ export function TenantDialog({ open, onOpenChange, tenant, onSaved }: Props) {
               <Input id="t-phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <Label htmlFor="t-dob">{tf("tenants.date_of_birth")}</Label>
               <Input id="t-dob" type="date" value={dob} onChange={(e) => setDob(e.target.value)} />
             </div>
             <div>
               <Label htmlFor="t-emerg">{tf("tenants.emergency_contact")}</Label>
-              <Input id="t-emerg" value={emergency} onChange={(e) => setEmergency(e.target.value)} placeholder="Name · phone" />
+              <Input id="t-emerg" value={emergency} onChange={(e) => setEmergency(e.target.value)} placeholder={tf("common.placeholder_emergency_contact")} />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <Label htmlFor="t-emp">{tf("tenants.employer")}</Label>
               <Input id="t-emp" value={employer} onChange={(e) => setEmployer(e.target.value)} />
@@ -135,13 +135,13 @@ export function TenantDialog({ open, onOpenChange, tenant, onSaved }: Props) {
         </div>
         <DialogFooter className="mt-2">
           {tenant && (
-            <Button type="button" variant="destructive" className="sm:mr-auto" onClick={() => setConfirming(true)}>
+            <Button type="button" variant="destructive" className="sm:me-auto" onClick={() => setConfirming(true)}>
               {tf("common.delete")}
             </Button>
           )}
           <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>{tf("common.cancel")}</Button>
           <Button type="button" onClick={save} disabled={saving || !firstName.trim() || !lastName.trim()}>
-            {tenant ? tf("common.save") : tf("tenants.new")}
+            {tenant ? tf("common.save") : tf("common.create")}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -92,9 +92,9 @@ export function UnitDialog({ open, onOpenChange, propertyId, unit, onSaved }: Pr
         <div className="grid gap-3">
           <div>
             <Label htmlFor="unit-name">{tf("common.name")}</Label>
-            <Input id="unit-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Unit 1A" />
+            <Input id="unit-name" value={name} onChange={(e) => setName(e.target.value)} placeholder={tf("common.placeholder_unit_name")} />
           </div>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             <div>
               <Label htmlFor="unit-beds">{tf("units.bedrooms")}</Label>
               <Input id="unit-beds" type="number" step="0.5" value={bedrooms} onChange={(e) => setBedrooms(e.target.value)} />
@@ -108,7 +108,7 @@ export function UnitDialog({ open, onOpenChange, propertyId, unit, onSaved }: Pr
               <Input id="unit-sqft" type="number" value={sqft} onChange={(e) => setSqft(e.target.value)} />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <Label htmlFor="unit-rent">{tf("units.market_rent")}</Label>
               <Input id="unit-rent" type="number" value={marketRent} onChange={(e) => setMarketRent(e.target.value)} />
@@ -130,13 +130,13 @@ export function UnitDialog({ open, onOpenChange, propertyId, unit, onSaved }: Pr
         </div>
         <DialogFooter className="mt-2">
           {unit && (
-            <Button type="button" variant="destructive" className="sm:mr-auto" onClick={() => setConfirming(true)}>
+            <Button type="button" variant="destructive" className="sm:me-auto" onClick={() => setConfirming(true)}>
               {tf("common.delete")}
             </Button>
           )}
           <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>{tf("common.cancel")}</Button>
           <Button type="button" onClick={save} disabled={saving || !name.trim()}>
-            {unit ? tf("common.save") : tf("units.new_title")}
+            {unit ? tf("common.save") : tf("common.create")}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -145,7 +145,7 @@ export function ApplicationDialog({ open, onOpenChange, application, onSaved }: 
         </DialogHeader>
 
         <div className="grid gap-3">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <Label htmlFor="app-first">{tf("common.first_name")}</Label>
               <Input id="app-first" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
@@ -155,7 +155,7 @@ export function ApplicationDialog({ open, onOpenChange, application, onSaved }: 
               <Input id="app-last" value={lastName} onChange={(e) => setLastName(e.target.value)} />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <Label htmlFor="app-email">{tf("common.email")}</Label>
               <Input id="app-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
@@ -165,7 +165,7 @@ export function ApplicationDialog({ open, onOpenChange, application, onSaved }: 
               <Input id="app-phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <Label>{tf("common.property")}</Label>
               <Select value={String(propertyId || "")} onValueChange={(v) => { setPropertyId(v ? Number(v) : ""); setUnitId(""); }}>
@@ -189,7 +189,7 @@ export function ApplicationDialog({ open, onOpenChange, application, onSaved }: 
               </Select>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <Label>{tf("common.status")}</Label>
               <Select value={status} onValueChange={(v) => setStatus(v as ApplicationStatus)}>
@@ -208,7 +208,7 @@ export function ApplicationDialog({ open, onOpenChange, application, onSaved }: 
               <Input id="app-movein" type="date" value={moveIn} onChange={(e) => setMoveIn(e.target.value)} />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <Label htmlFor="app-income">{tf("common.monthly_income")}</Label>
               <Input id="app-income" type="number" value={income} onChange={(e) => setIncome(e.target.value)} />
@@ -231,13 +231,13 @@ export function ApplicationDialog({ open, onOpenChange, application, onSaved }: 
 
         <DialogFooter className="mt-2">
           {application && (
-            <Button type="button" variant="destructive" className="sm:mr-auto" onClick={() => setConfirming(true)}>
+            <Button type="button" variant="destructive" className="sm:me-auto" onClick={() => setConfirming(true)}>
               {tf("common.delete")}
             </Button>
           )}
           <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>{tf("common.cancel")}</Button>
           <Button type="button" onClick={save} disabled={saving || !valid}>
-            {application ? tf("common.save") : tf("applications.new_title")}
+            {application ? tf("common.save") : tf("common.create")}
           </Button>
         </DialogFooter>
       </DialogContent>

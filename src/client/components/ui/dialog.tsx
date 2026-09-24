@@ -3,6 +3,7 @@ import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { t } from "@/i18n";
 
 const Dialog = DialogPrimitive.Root;
 const DialogTrigger = DialogPrimitive.Trigger;
@@ -40,9 +41,9 @@ const DialogContent = React.forwardRef<
           {...props}
         >
           {children}
-          <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm text-muted-foreground transition-colors duration-150 outline-none hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/40 disabled:pointer-events-none">
+          <DialogPrimitive.Close className="absolute end-4 top-4 rounded-sm text-muted-foreground transition-colors duration-150 outline-none hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/40 disabled:pointer-events-none">
             <X className="h-4 w-4" />
-            <span className="sr-only">Close</span>
+            <span className="sr-only">{t("common.close")}</span>
           </DialogPrimitive.Close>
         </DialogPrimitive.Content>
       </div>
@@ -52,12 +53,12 @@ const DialogContent = React.forwardRef<
 DialogContent.displayName = DialogPrimitive.Content.displayName;
 
 const DialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn("flex flex-col space-y-1.5 text-center sm:text-left", className)} {...props} />
+  <div className={cn("flex flex-col space-y-1.5 text-center sm:text-start", className)} {...props} />
 );
 DialogHeader.displayName = "DialogHeader";
 
 const DialogFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn("flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:space-x-2", className)} {...props} />
+  <div className={cn("flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-2", className)} {...props} />
 );
 DialogFooter.displayName = "DialogFooter";
 

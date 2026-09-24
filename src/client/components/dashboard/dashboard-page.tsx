@@ -12,9 +12,9 @@ import { useApp } from "@/context";
 import { api } from "@/api";
 import { cn, daysBetween, formatDate, formatMoney, toIsoDate } from "@/lib/utils";
 import type { DashboardSummary } from "@/types";
-import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { PageShell } from "@/components/page-shell";
+import { EmptyState } from "@/components/empty-state";
 import { tf } from "@/i18n";
 
 export function DashboardPage({ navigate }: { navigate: (to: string) => void }) {
@@ -40,8 +40,8 @@ export function DashboardPage({ navigate }: { navigate: (to: string) => void }) 
 
   if (loading || !summary) {
     return (
-      <div className="flex flex-1 items-center justify-center text-muted-foreground">
-        {tf("dashboard.loading")}
+      <div className="flex flex-1 items-center justify-center">
+        <Card className="p-8 text-center text-sm text-muted-foreground">{tf("dashboard.loading")}</Card>
       </div>
     );
   }
@@ -111,7 +111,7 @@ export function DashboardPage({ navigate }: { navigate: (to: string) => void }) 
                 {tf("dashboard.open_ledger")}
               </button>
             </div>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <Stat
                 label={tf("dashboard.collected")}
                 value={formatMoney(summary.month_collected, settings.currency)}
@@ -145,7 +145,7 @@ export function DashboardPage({ navigate }: { navigate: (to: string) => void }) 
               </button>
             </div>
             {summary.recent_work_orders.length === 0 ? (
-              <Empty icon={<CheckCircle2 className="h-5 w-5" />} title={tf("dashboard.all_caught_up")} message={tf("dashboard.no_open_wos")} />
+              <EmptyState icon={<CheckCircle2 className="size-5" />} title={tf("dashboard.all_caught_up")} description={tf("dashboard.no_open_wos")} className="py-8" />
             ) : (
               <ul className="divide-y">
                 {summary.recent_work_orders.map((w) => (
@@ -178,7 +178,7 @@ export function DashboardPage({ navigate }: { navigate: (to: string) => void }) 
               </button>
             </div>
             {summary.upcoming_expirations.length === 0 ? (
-              <Empty icon={<CheckCircle2 className="h-5 w-5" />} title={tf("dashboard.nothing_60")} message={tf("dashboard.no_expirations")} />
+              <EmptyState icon={<CheckCircle2 className="size-5" />} title={tf("dashboard.nothing_60")} description={tf("dashboard.no_expirations")} className="py-8" />
             ) : (
               <ul className="divide-y">
                 {summary.upcoming_expirations.map((l) => {
@@ -194,7 +194,7 @@ export function DashboardPage({ navigate }: { navigate: (to: string) => void }) 
                           {[l.property_name, l.unit_name].filter(Boolean).join(" · ")}
                         </p>
                       </div>
-                      <div className="text-right text-xs">
+                      <div className="text-end text-xs">
                         <div className="font-medium text-foreground">{formatDate(l.end_date)}</div>
                         <div className={cn(
                           "text-muted-foreground",
@@ -227,7 +227,7 @@ function KpiCard({
     <Card className={cn("relative px-3 py-2.5", tone === "warn" && "bg-warning-tint")}>
       <span
         className={cn(
-          "absolute right-3 top-2.5 opacity-50",
+          "absolute end-3 top-2.5 opacity-50",
           tone === "warn" ? "text-warning" : "text-muted-foreground",
         )}
         aria-hidden
@@ -297,34 +297,15 @@ function Stat({
   );
 }
 
-function Empty({
-  icon, title, message,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  message: string;
-}) {
-  return (
-    <div className="flex flex-col items-center justify-center gap-1 py-8 text-center">
-      <span className="text-muted-foreground">{icon}</span>
-      <p className="text-sm font-medium">{title}</p>
-      <p className="text-xs text-muted-foreground">{message}</p>
-    </div>
-  );
-}
-
 function PriorityBadge({ priority }: { priority: string }) {
   const map: Record<string, string> = {
-    urgent: "bg-destructive-tint text-destructive",
-    high: "bg-warning-tint text-warning",
-    normal: "bg-info-tint text-info",
-    low: "bg-muted text-muted-foreground",
+    urgent: "tone-danger",
+    high: "tone-warning",
+    normal: "tone-info",
+    low: "tone-neutral",
   };
   return (
-    <span className={cn(
-      "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold",
-      map[priority] ?? map.normal,
-    )}>
+    <span className={cn("badge-tone capitalize", map[priority] ?? "tone-neutral")}>
       {priority === "urgent" && <CircleAlert className="h-3 w-3" />}
       {tf(`priority.${priority}`)}
     </span>
@@ -333,11 +314,11 @@ function PriorityBadge({ priority }: { priority: string }) {
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
-    open: "secondary",
-    assigned: "default",
-    in_progress: "default",
-    completed: "outline",
-    cancelled: "outline",
+    open: "tone-info",
+    assigned: "tone-success",
+    in_progress: "tone-warning",
+    completed: "tone-neutral",
+    cancelled: "tone-neutral",
   };
-  return <Badge variant={(map[status] ?? "secondary") as never} className="capitalize">{tf(`wo_status.${status}`)}</Badge>;
+  return <span className={cn("badge-tone capitalize", map[status] ?? "tone-neutral")}>{tf(`wo_status.${status}`)}</span>;
 }

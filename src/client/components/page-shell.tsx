@@ -28,7 +28,7 @@ export function PageShell({
 }) {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <header className="flex h-14 shrink-0 items-center gap-3 border-b border-border px-6">
+      <header className="flex h-auto min-h-14 shrink-0 flex-wrap items-center gap-3 border-b border-border px-4 py-2 md:px-6">
         <h1 className="shrink-0 truncate text-[1.375rem] font-semibold leading-tight tracking-[-0.01em]">
           {title}
         </h1>
@@ -37,7 +37,7 @@ export function PageShell({
         ) : (
           <div className="flex-1" />
         )}
-        {actions ? <div className="flex shrink-0 items-center gap-2">{actions}</div> : null}
+        {actions ? <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div> : null}
       </header>
       <div className="min-h-0 flex-1 overflow-auto">
         <div className={cn("mx-auto w-full space-y-6 p-6", width)}>{children}</div>

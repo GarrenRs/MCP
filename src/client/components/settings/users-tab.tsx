@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Pencil, Plus, Trash2, Users } from "lucide-react";
 import { api, ApiError } from "@/api";
-import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import { EmptyState } from "@/components/empty-state";
 import { Button } from "@/components/ui/button";
 import { ConfirmDelete } from "@/components/ui/alert-dialog";
 import { Card } from "@/components/ui/card";
@@ -25,10 +26,10 @@ interface UserRecord {
   created_at: string;
 }
 
-const ROLE_COLORS: Record<string, string> = {
-  owner: "bg-amber-100 text-amber-800",
-  admin: "bg-blue-100 text-blue-800",
-  manager: "bg-green-100 text-green-800",
+const ROLE_TONE: Record<string, string> = {
+  owner: "tone-warning",
+  admin: "tone-info",
+  manager: "tone-neutral",
 };
 
 export function UsersTab({ currentUserRole }: { currentUserRole: string }) {
@@ -62,13 +63,13 @@ export function UsersTab({ currentUserRole }: { currentUserRole: string }) {
           <p className="text-xs text-muted-foreground">{t("auth.users_desc")}</p>
         </div>
         <Button size="sm" onClick={() => { setEditing(undefined); setOpen(true); }}>
-          <Plus className="mr-1 h-4 w-4" /> {t("auth.add_user")}
+          <Plus className="me-1 h-4 w-4" /> {t("auth.add_user")}
         </Button>
       </div>
       {loading ? (
-        <div className="p-8 text-center text-sm text-muted-foreground">{t("common.loading")}</div>
+        <Card className="p-8 text-center text-sm text-muted-foreground">{t("common.loading")}</Card>
       ) : users.length === 0 ? (
-        <div className="p-8 text-center text-sm text-muted-foreground">{t("auth.no_users")}</div>
+        <EmptyState icon={<Users className="size-8" />} title={t("auth.no_users")} />
       ) : (
         <ul className="divide-y">
           {users.map((u) => (
@@ -78,7 +79,7 @@ export function UsersTab({ currentUserRole }: { currentUserRole: string }) {
                 <div className="text-xs text-muted-foreground">{u.email}</div>
               </div>
               <div className="flex items-center gap-2">
-                <Badge variant="neutral" className={ROLE_COLORS[u.role] ?? ""}>{t(`auth.role_${u.role}`)}</Badge>
+                <span className={cn("badge-tone", ROLE_TONE[u.role] ?? "tone-neutral")}>{t(`auth.role_${u.role}`)}</span>
                 {canManage && (
                   <Button size="icon" variant="ghost" onClick={() => { setEditing(u); setOpen(true); }}>
                     <Pencil className="h-4 w-4" />
@@ -193,7 +194,7 @@ function UserDialog({
               <Input id="u-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={!isNew} />
             </div>
             <div>
-              <Label htmlFor="u-pass">{t("auth.password")}{!isNew ? ` (${t("common.cancel")})` : ""}</Label>
+              <Label htmlFor="u-pass">{t("auth.password")}{!isNew ? ` (${t("users.unchanged")})` : ""}</Label>
               <Input id="u-pass" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder={isNew ? "" : "••••••••"} />
             </div>
             <div>
@@ -211,8 +212,8 @@ function UserDialog({
           </div>
           <DialogFooter>
             {canDelete && (
-              <Button type="button" variant="destructive" className="sm:mr-auto" onClick={() => setConfirming(true)}>
-                <Trash2 className="mr-1 h-4 w-4" /> {t("common.delete")}
+              <Button type="button" variant="destructive" className="sm:me-auto" onClick={() => setConfirming(true)}>
+                <Trash2 className="me-1 h-4 w-4" /> {t("common.delete")}
               </Button>
             )}
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>{t("common.cancel")}</Button>
