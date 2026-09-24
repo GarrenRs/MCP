@@ -3,16 +3,18 @@ import type { TestEnv } from "./helpers/d1";
 import { createTestEnv } from "./helpers/d1";
 import { call } from "./helpers/api";
 import { resetSeedForTests } from "../src/server/index";
+import { applyDemoFixture } from "./helpers/demo-fixture";
 import { resolve } from "node:path";
 import { readFileSync } from "node:fs";
 
 let env: TestEnv;
 
-beforeEach(() => {
+beforeEach(async () => {
   env = createTestEnv();
   const migration = readFileSync(resolve(process.cwd(), "migrations/0004_lease_unit_occupancy.sql"), "utf8");
   env.DB.exec(migration);
   resetSeedForTests();
+  await applyDemoFixture(env);
 });
 
 interface LeaseRow {

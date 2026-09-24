@@ -12,9 +12,19 @@ import { tf } from "@/i18n";
 import { downloadCsv } from "@/api";
 
 export function PropertiesList({ navigate }: { navigate: (to: string) => void }) {
-  const { properties } = useApp();
+  const app = useApp();
+  const properties = app.properties;
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Property | undefined>(undefined);
+
+  // Profile-owned property-geography columns, joined in the profile's order
+  // so the address line matches the CSV export order.
+  const geoColumns = app.profile.geo.columns;
+  const geoValuesFor = (p: Property): (string | null)[] => {
+    const rec = p as unknown as Record<string, unknown>;
+    return geoColumns.map((col) => (typeof rec[col] === "string" ? (rec[col] as string) : null));
+  };
+  const geoLine = (p: Property) => [p.address, ...geoValuesFor(p), p.country, p.city, p.state].filter(Boolean).join(", ");
 
   const totalUnits = properties.reduce((sum, p) => sum + (p.unit_count ?? 0), 0);
   const occupied = properties.reduce((sum, p) => sum + (p.occupied_count ?? 0), 0);
@@ -61,10 +71,10 @@ export function PropertiesList({ navigate }: { navigate: (to: string) => void })
                     </span>
                   </div>
                   <h3 className="font-semibold tracking-tight">{p.name}</h3>
-                  {(p.address || p.city || p.commune || p.wilaya) && (
+                  {(p.address || p.city || geoValuesFor(p).some(Boolean)) && (
                     <p className="mt-1 flex items-center gap-1 truncate text-sm text-muted-foreground">
                       <MapPin className="h-3 w-3 shrink-0" />
-                      {[p.address, p.commune, p.wilaya, p.country, p.city, p.state].filter(Boolean).join(", ")}
+                      {geoLine(p)}
                     </p>
                   )}
                   <div className="mt-4 grid grid-cols-3 gap-3 border-t pt-4 text-sm">

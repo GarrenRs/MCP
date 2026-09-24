@@ -11,8 +11,6 @@ export interface Property {
   state: string | null;
   zip: string | null;
   country: string | null;
-  wilaya: string | null;
-  commune: string | null;
   year_built: number | null;
   notes: string | null;
   color: string;

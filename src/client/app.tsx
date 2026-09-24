@@ -17,6 +17,7 @@ import { MaintenancePage } from "./components/maintenance/maintenance-page";
 import { ApplicationsPage } from "./components/applications/applications-page";
 import { SettingsPage } from "./components/settings/settings-page";
 import { t } from "./i18n";
+import type { ProductProfile } from "./profile-types";
 
 /**
  * The navigation, defined once.
@@ -81,8 +82,8 @@ interface SessionUser {
   display_name: string;
 }
 
-export function App() {
-  const state = useAppState();
+export function App({ profile }: { profile: ProductProfile }) {
+  const state = useAppState(profile);
   const { path, route, navigate } = useRouter();
   const [sessionUser, setSessionUser] = useState<SessionUser | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
@@ -152,7 +153,7 @@ export function App() {
   ]);
 
   return (
-    <AppContext.Provider value={state}>
+    <AppContext.Provider value={{ ...state, profile }}>
       <div className="flex h-screen min-h-0 flex-col overflow-hidden bg-background text-foreground md:flex-row">
         <div className="flex shrink-0">
           <AppNav

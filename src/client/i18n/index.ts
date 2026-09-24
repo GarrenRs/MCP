@@ -1,18 +1,51 @@
 import en from "./en.json";
-import ar from "./ar.json";
-import fr from "./fr.json";
 
-export type Locale = "en" | "ar" | "fr-DZ";
+/**
+ * Core i18n. Ships with English only (`en`); product profiles register their
+ * own locales and catalogs through `registerLocales` / `registerCatalogs`
+ * before the UI mounts (see src/client/main.tsx). English stays the fallback
+ * for every locale, so a missing translation degrades to English, then to the
+ * key itself.
+ */
+export type Locale = string;
 
-const CATALOGS: Record<Locale, unknown> = { en, ar, "fr-DZ": fr };
+const CATALOGS: Record<string, Record<string, unknown>> = { en };
 
 const DEFAULT_LOCALE: Locale = "en";
-const SUPPORTED_LOCALES: Locale[] = ["en", "ar", "fr-DZ"];
+const SUPPORTED_LOCALES: Locale[] = ["en"];
 
 let currentLocale: Locale = DEFAULT_LOCALE;
 
+/** Declare a locale id as supported (unknown ids fall back to the default). */
+export function registerLocales(ids: readonly string[]): void {
+  for (const id of ids) {
+    if (!SUPPORTED_LOCALES.includes(id)) SUPPORTED_LOCALES.push(id);
+  }
+}
+
+/** Deep-merge catalogs into the registry (profile catalogs overlay the core
+ *  English base, so partial catalog fragments are fine). */
+export function registerCatalogs(catalogs: Record<string, Record<string, unknown>>): void {
+  for (const [locale, catalog] of Object.entries(catalogs)) {
+    CATALOGS[locale] = deepMerge(CATALOGS[locale] ?? en, catalog);
+  }
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function deepMerge(base: Record<string, unknown>, extra: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = { ...base };
+  for (const [key, value] of Object.entries(extra)) {
+    const existing = out[key];
+    out[key] = isPlainObject(existing) && isPlainObject(value) ? deepMerge(existing, value) : value;
+  }
+  return out;
+}
+
 export function isSupportedLocale(value: string): value is Locale {
-  return (SUPPORTED_LOCALES as string[]).includes(value);
+  return SUPPORTED_LOCALES.includes(value);
 }
 
 export function getLocale(): Locale {

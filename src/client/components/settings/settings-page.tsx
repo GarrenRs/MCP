@@ -278,6 +278,11 @@ function PolicyTab() {
   const [locale, setLocale] = useState(app.settings.locale);
   const [saving, setSaving] = useState(false);
 
+  // Locale picker = English (the core base) plus the profile's registered
+  // locales, in that order; label keys derive from the locale id (option_<id>).
+  const localeOptions = ["en", ...app.profile.locales.ids];
+  const localeOptionKey = (id: string) => `vendors.option_${id.replace(/-/g, "_")}`;
+
   useEffect(() => {
     setDueDay(String(app.settings.default_rent_due_day));
     setLateFee(String(app.settings.late_fee_amount));
@@ -293,7 +298,7 @@ function PolicyTab() {
         default_rent_due_day: Math.min(31, Math.max(1, parseInt(dueDay, 10) || 1)),
         late_fee_amount: parseFloat(lateFee) || 0,
         late_fee_grace_days: Math.max(0, parseInt(grace, 10) || 0),
-        currency: currency.trim().toUpperCase() || "DZD",
+        currency: currency.trim().toUpperCase() || app.profile.defaults.settings.currency,
         locale,
       });
     } catch (err) {
@@ -324,7 +329,7 @@ function PolicyTab() {
         </div>
         <div>
           <Label htmlFor="s-cur">{tf("vendors.currency")}</Label>
-          <Input id="s-cur" value={currency} onChange={(e) => setCurrency(e.target.value)} placeholder="DZD" />
+          <Input id="s-cur" value={currency} onChange={(e) => setCurrency(e.target.value)} placeholder={app.profile.defaults.settings.currency} />
         </div>
       </div>
       <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3 md:grid-cols-4">
@@ -333,9 +338,9 @@ function PolicyTab() {
           <Select value={locale} onValueChange={setLocale}>
             <SelectTrigger id="s-locale"><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="en">{tf("vendors.option_en")}</SelectItem>
-              <SelectItem value="fr-DZ">{tf("vendors.option_fr_dz")}</SelectItem>
-              <SelectItem value="ar">{tf("vendors.option_ar")}</SelectItem>
+              {localeOptions.map((id) => (
+                <SelectItem key={id} value={id}>{tf(localeOptionKey(id))}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>

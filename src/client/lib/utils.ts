@@ -51,13 +51,15 @@ export function formatDate(iso: string | null | undefined, locale?: string, opts
 }
 
 /**
- * Format a number as currency. Uses the supplied currency (validated) or USD
- * by default. Invalid/malformed currency codes never throw — they fall back to
- * a locale-aware plain number so a bad setting cannot crash a render.
+ * Format a number as currency when a currency code is supplied; without one —
+ * or when the code is malformed — fall back to a locale-aware plain number.
+ * The core never assumes a currency: callers pass the user's settings (which
+ * carry the profile default) so an invalid setting degrades gracefully instead
+ * of crashing a render.
  */
 export function formatMoney(n: number | null | undefined, currency?: string, locale?: string): string {
   if (n === null || n === undefined || Number.isNaN(n)) return "—";
-  const code = currency?.trim().toUpperCase() || "DZD";
+  const code = currency?.trim().toUpperCase();
   const loc = localeOrActive(locale);
   // Malformed codes throw a RangeError at construction of the formatter, so
   // build it defensively and fall back to a plain locale-aware number.
@@ -71,6 +73,7 @@ export function formatMoney(n: number | null | undefined, currency?: string, loc
     }
     return new Intl.NumberFormat(loc, { maximumFractionDigits: 0 }).format(n);
   };
+  if (!code) return tryFormat();
   try {
     const money = new Intl.NumberFormat(loc, { style: "currency", currency: code, maximumFractionDigits: 0 });
     return tryFormat(money);

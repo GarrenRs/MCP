@@ -12,17 +12,24 @@ import {
   type Migration,
   type MigrationDriver,
 } from "../src/server/migrate";
-import { getLocale, isSupportedLocale, setLocale, t, tf } from "../src/client/i18n";
+import { getLocale, isSupportedLocale, registerCatalogs, registerLocales, setLocale, t, tf } from "../src/client/i18n";
 import { formatDate, formatMoney } from "../src/client/lib/utils";
-import { WILAYAS } from "../src/client/lib/wilayas";
+import { WILAYAS } from "../src/profile/algeria/wilayas";
+import { catalogs as algeriaCatalogs, localeIds as algeriaLocaleIds } from "../src/profile/algeria/locales";
 import en from "../src/client/i18n/en.json";
-import fr from "../src/client/i18n/fr.json";
+import fr from "../src/profile/algeria/fr.json";
+import { applyDemoFixture } from "./helpers/demo-fixture";
 
 let env: TestEnv;
 
-beforeEach(() => {
+beforeEach(async () => {
   env = createTestEnv();
   resetSeedForTests();
+  // The product registers the Algeria profile's locales before the UI mounts;
+  // this test registers them explicitly per test so catalogue lookups behave
+  // exactly like the composed product.
+  registerLocales(algeriaLocaleIds);
+  registerCatalogs(algeriaCatalogs);
   setLocale("en");
 });
 
@@ -155,6 +162,9 @@ describe("migration 0002 (P4)", () => {
 describe("property geography CRUD (P4)", () => {
   beforeEach(async () => {
     await runMigrations(driverFor(env.DB), [schemaBase(), GEO_MIGRATION]);
+    // Demo rows are inserted after migrations so the geo columns exist as
+    // plain NULLs — same read-back contract as the old runtime seed.
+    await applyDemoFixture(env);
   });
 
   it("persists country, wilaya, and commune", async () => {

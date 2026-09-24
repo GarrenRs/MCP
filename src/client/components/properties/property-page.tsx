@@ -37,6 +37,13 @@ const WO_STATUS_TONE: Record<string, string> = {
 
 export function PropertyPage({ id, navigate }: { id: number; navigate: (to: string) => void }) {
   const app = useApp();
+  // Profile-owned property-geography columns, joined in the profile's order
+  // so the address line matches the export order.
+  const geoColumns = app.profile.geo.columns;
+  const geoValuesFor = (p: Property): (string | null)[] => {
+    const rec = p as unknown as Record<string, unknown>;
+    return geoColumns.map((col) => (typeof rec[col] === "string" ? (rec[col] as string) : null));
+  };
   const [property, setProperty] = useState<Property | null>(null);
   const [units, setUnits] = useState<Unit[]>([]);
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>([]);
@@ -116,10 +123,10 @@ export function PropertyPage({ id, navigate }: { id: number; navigate: (to: stri
                   {tf(`property_type.${property.type}`)}
                 </span>
               </div>
-              {(property.address || property.city || property.commune || property.wilaya) && (
+              {(property.address || property.city || geoValuesFor(property).some(Boolean)) && (
                 <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
                   <MapPin className="h-3 w-3" />
-                  {[property.address, property.commune, property.wilaya, property.country, property.city, property.state, property.zip].filter(Boolean).join(", ")}
+                  {[property.address, ...geoValuesFor(property), property.country, property.city, property.state, property.zip].filter(Boolean).join(", ")}
                 </p>
               )}
             </div>

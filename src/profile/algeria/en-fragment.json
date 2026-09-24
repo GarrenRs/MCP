@@ -1,0 +1,14 @@
+{
+  "app": {
+    "brand": "ORKESTRIX Property System"
+  },
+  "geo": {
+    "wilaya": "Wilaya",
+    "commune": "Commune"
+  },
+  "vendors": {
+    "option_en": "English",
+    "option_ar": "العربية",
+    "option_fr_dz": "Français (Algérie)"
+  }
+}

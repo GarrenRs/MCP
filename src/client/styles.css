@@ -190,10 +190,10 @@
   --shadow-raised: var(--edge-raised);
   --shadow-float: var(--edge-float);
 
-  /* Cairo is the primary Arabic UI face (intentional UI-F3 refinement;
-     replaces Noto Sans Arabic as primary). Inter stays first so EN/FR
-     Latin typography is unchanged; Noto Sans Arabic remains as a fallback. */
-  --font-sans: "Inter", "Cairo", "Noto Sans Arabic", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  /* Neutral Latin-facing stack. Regional typography is profile-owned: the
+     product profile restyles --font-sans and adds its own RTL/Arabic rules in
+     its own stylesheet, loaded after this core sheet. */
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 /*
@@ -398,7 +398,6 @@ aside.cn-nav .cn-nav-item {
   letter-spacing: -0.01em;
   color: var(--foreground);
 }
-[dir=rtl] aside.cn-nav .cn-nav-item { letter-spacing: 0; }
 aside.cn-nav .cn-nav-item:hover { background: rgba(0, 0, 0, 0.03); }
 aside.cn-nav .cn-nav-item[data-active] {
   background: rgba(0, 0, 0, 0.04);      /* neutral, not the brand hue */
@@ -430,25 +429,6 @@ aside.cn-nav .cn-nav-item[data-active] .cn-nav-count { color: var(--muted-foregr
 
 /* Agent mode (?agent / mode=agent sets data-agent on <html>): interactive
  * targets grow, and hover-only affordances become always-visible. */
-/* Arabic typography tuning: loosen line-height and disable tracking that breaks
-   Arabic letter joining. Applied by lang (set from locale) and by dir. */
-[lang=ar] body,
-[dir=rtl] body {
-  line-height: 1.65;
-}
-[lang=ar] .tracking-\[-0\.01em\],
-[lang=ar] .tracking-tight,
-[lang=ar] .tracking-\[0\.06em\],
-[dir=rtl] .tracking-\[-0\.01em\],
-[dir=rtl] .tracking-tight,
-[dir=rtl] .tracking-\[0\.06em\] {
-  letter-spacing: 0;
-}
-[lang=ar] .stat-label,
-[dir=rtl] .stat-label {
-  letter-spacing: 0;
-}
-
 :root[data-agent] button,
 :root[data-agent] input,
 :root[data-agent] select,

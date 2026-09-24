@@ -1,6 +1,7 @@
-/** The 58 wilayas of Algeria, as the static pick list for the property form.
- *  Entries store the official French name; the API keeps the chosen name in
- *  `properties.wilaya` (nullable, additive since migration 0002). */
+/** The 58 wilayas of Algeria — the static pick list for the Algeria profile's
+ *  property geo slot. Entries store the official French name; the API keeps
+ *  the chosen name in `properties.wilaya` (nullable, additive since migration
+ *  0002 — a profile-owned schema addition). */
 export interface Wilaya {
   code: string;
   name: string;

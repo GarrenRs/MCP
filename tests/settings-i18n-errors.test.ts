@@ -3,13 +3,18 @@ import type { TestEnv } from "./helpers/d1";
 import { createTestEnv } from "./helpers/d1";
 import { call } from "./helpers/api";
 import app, { resetSeedForTests } from "../src/server/index";
-import { getLocale, resolveErrorMessage, setLocale, t } from "../src/client/i18n";
+import { getLocale, registerCatalogs, registerLocales, resolveErrorMessage, setLocale, t } from "../src/client/i18n";
 import { formatMoney, formatPeriod } from "../src/client/lib/utils";
+import { catalogs as algeriaCatalogs, localeIds as algeriaLocaleIds } from "../src/profile/algeria/locales";
 
 let env: TestEnv;
 
 beforeEach(() => {
   env = createTestEnv();
+  // The product registers the Algeria profile's locales before the UI mounts;
+  // register them here too so ar/fr-DZ behave exactly like the composed product.
+  registerLocales(algeriaLocaleIds);
+  registerCatalogs(algeriaCatalogs);
   resetSeedForTests();
 });
 

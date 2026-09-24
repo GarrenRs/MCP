@@ -1,6 +1,5 @@
 {
   "app": {
-    "brand": "ORKESTRIX Property System",
     "loading": "Loading…",
     "not_found_title": "Not found",
     "not_found_msg": "That page doesn't exist."
@@ -196,9 +195,7 @@
     "back_to": "Back to properties"
   },
   "geo": {
-    "country": "Country",
-    "wilaya": "Wilaya",
-    "commune": "Commune"
+    "country": "Country"
   },
   "units": {
     "new": "New unit",
@@ -387,10 +384,7 @@
     "late_fee": "Late fee",
     "grace_days": "Grace days",
     "currency": "Currency",
-    "save": "Save settings",
-    "option_en": "English",
-    "option_ar": "العربية",
-    "option_fr_dz": "Français (Algérie)"
+    "save": "Save settings"
   },
   "export": {
     "button": "Export CSV",

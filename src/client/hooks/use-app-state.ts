@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { api } from "../api";
 import { setLocale } from "../i18n";
+import type { ProductProfile } from "../profile-types";
 import type {
   Property,
   Unit,
@@ -27,32 +28,41 @@ export interface AppSettings {
   locale: string;
 }
 
-const DEFAULT_SETTINGS: AppSettings = {
+/** Numeric defaults shared by every market; the profile only overrides the
+ *  market-shaped values (currency/locale) it owns. */
+const CORE_SETTINGS = {
   default_rent_due_day: 1,
   late_fee_amount: 50,
   late_fee_grace_days: 5,
-  currency: "DZD",
-  locale: "fr-DZ",
-};
+} as const;
 
-function parseSettings(raw: Record<string, string>): AppSettings {
+function parseSettings(raw: Record<string, string>, defaults: AppSettings): AppSettings {
   const num = (key: keyof AppSettings, fallback: number) => {
     const v = parseFloat(raw[key]);
     return Number.isFinite(v) ? v : fallback;
   };
   return {
-    default_rent_due_day: num("default_rent_due_day", DEFAULT_SETTINGS.default_rent_due_day),
-    late_fee_amount: num("late_fee_amount", DEFAULT_SETTINGS.late_fee_amount),
-    late_fee_grace_days: num("late_fee_grace_days", DEFAULT_SETTINGS.late_fee_grace_days),
-    currency: raw.currency || DEFAULT_SETTINGS.currency,
-    locale: raw.locale || DEFAULT_SETTINGS.locale,
+    default_rent_due_day: num("default_rent_due_day", defaults.default_rent_due_day),
+    late_fee_amount: num("late_fee_amount", defaults.late_fee_amount),
+    late_fee_grace_days: num("late_fee_grace_days", defaults.late_fee_grace_days),
+    currency: raw.currency || defaults.currency,
+    locale: raw.locale || defaults.locale,
   };
 }
 
-export function useAppState() {
+export function useAppState(profile: ProductProfile) {
+  // Developer-controlled profile defaults seed the first render; the API
+  // response (the user's overrides) wins from the first fetch onwards. Memoized
+  // on the (stable) profile so callback identities stay put across renders.
+  const defaultSettings = useMemo<AppSettings>(() => ({
+    ...CORE_SETTINGS,
+    currency: profile.defaults.settings.currency ?? "",
+    locale: profile.defaults.settings.locale ?? "",
+  }), [profile]);
+
   const [properties, setProperties] = useState<Property[]>([]);
   const [vendors, setVendors] = useState<Vendor[]>([]);
-  const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
+  const [settings, setSettings] = useState<AppSettings>(defaultSettings);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -66,8 +76,8 @@ export function useAppState() {
     ]);
     setProperties(props.properties);
     setVendors(vens.vendors);
-    setSettings(parseSettings(st.settings));
-  }, []);
+    setSettings(parseSettings(st.settings, defaultSettings));
+  }, [defaultSettings]);
 
   const updateSettings = useCallback(async (patch: Partial<AppSettings>) => {
     const body: Record<string, string> = {};
@@ -75,8 +85,8 @@ export function useAppState() {
       if (v !== undefined) body[k] = String(v);
     }
     const res = await api<{ settings: Record<string, string> }>("PUT", "/api/settings", body);
-    setSettings(parseSettings(res.settings));
-  }, []);
+    setSettings(parseSettings(res.settings, defaultSettings));
+  }, [defaultSettings]);
 
   // Initial load.
   useEffect(() => {
@@ -94,11 +104,12 @@ export function useAppState() {
 
   // Activate the product locale for i18n + the document language whenever the
   // setting (or its default) is known. Unknown values fall back to "en".
+  // RTL rendering is driven by the profile's rtlLocales, never hard-coded.
   useEffect(() => {
     setLocale(settings.locale);
     document.documentElement.lang = settings.locale || "en";
-    document.documentElement.dir = settings.locale === "ar" ? "rtl" : "ltr";
-  }, [settings.locale]);
+    document.documentElement.dir = profile.locales.rtlLocales.includes(settings.locale) ? "rtl" : "ltr";
+  }, [settings.locale, profile]);
 
   // Property mutations ─────────────────────────────────────────────
 

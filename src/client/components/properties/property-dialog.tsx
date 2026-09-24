@@ -9,8 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { t, tf } from "@/i18n";
-import { WILAYAS } from "@/lib/wilayas";
-import type { Property, PropertyType } from "@/types";
+import type { Property, PropertyType, NewProperty } from "@/types";
 
 interface Props {
   open: boolean;
@@ -43,6 +42,11 @@ const SWATCH_BG: Record<string, string> = {
 
 export function PropertyDialog({ open, onOpenChange, property, onSaved }: Props) {
   const app = useApp();
+  const appProfile = app.profile;
+  // The property-geography fields are profile-owned: the dialog renders an
+  // opaque geo slot (if the profile supplies one) and stores its values
+  // keyed by geo column name — without knowing what the columns mean.
+  const GeoFields = appProfile.geo.component;
   const [name, setName] = useState("");
   const [confirming, setConfirming] = useState(false);
   const [type, setType] = useState<PropertyType>("single_family");
@@ -50,9 +54,8 @@ export function PropertyDialog({ open, onOpenChange, property, onSaved }: Props)
   const [city, setCity] = useState("");
   const [stateName, setStateName] = useState("");
   const [zip, setZip] = useState("");
-  const [country, setCountry] = useState("DZ");
-  const [wilaya, setWilaya] = useState("");
-  const [commune, setCommune] = useState("");
+  const [country, setCountry] = useState(appProfile.defaults.country);
+  const [geoValues, setGeoValues] = useState<Record<string, string | null>>({});
   const [yearBuilt, setYearBuilt] = useState("");
   const [color, setColor] = useState("sky");
   const [notes, setNotes] = useState("");
@@ -66,18 +69,30 @@ export function PropertyDialog({ open, onOpenChange, property, onSaved }: Props)
     setCity(property?.city ?? "");
     setStateName(property?.state ?? "");
     setZip(property?.zip ?? "");
-    setCountry(property?.country ?? "DZ");
-    setWilaya(property?.wilaya ?? "");
-    setCommune(property?.commune ?? "");
+    setCountry(property?.country ?? appProfile.defaults.country);
+    const record = property as unknown as Record<string, unknown> | null;
+    const initial: Record<string, string | null> = {};
+    for (const col of appProfile.geo.columns) {
+      const v = record?.[col];
+      initial[col] = typeof v === "string" ? v : "";
+    }
+    setGeoValues(initial);
     setYearBuilt(property?.year_built ? String(property.year_built) : "");
     setColor(property?.color ?? "sky");
     setNotes(property?.notes ?? "");
-  }, [open, property]);
+  }, [open, property, appProfile]);
 
   async function save() {
     if (!name.trim()) return;
     setSaving(true);
     try {
+      // Normalize the profile's geo values uniformly (trim, null when empty) —
+      // the same net effect the pre-separation form had per field.
+      const geoPayload: Record<string, string | null> = {};
+      for (const col of appProfile.geo.columns) {
+        const v = geoValues[col];
+        geoPayload[col] = typeof v === "string" && v.trim() ? v.trim() : null;
+      }
       const payload = {
         name: name.trim(),
         type,
@@ -86,15 +101,14 @@ export function PropertyDialog({ open, onOpenChange, property, onSaved }: Props)
         state: stateName.trim() || null,
         zip: zip.trim() || null,
         country: country.trim() || null,
-        wilaya: wilaya || null,
-        commune: commune.trim() || null,
         year_built: yearBuilt ? parseInt(yearBuilt, 10) : null,
         color,
         notes: notes.trim() || null,
+        ...geoPayload,
       };
       const saved = property
-        ? await app.updateProperty(property.id, payload)
-        : await app.createProperty(payload);
+        ? await app.updateProperty(property.id, payload as NewProperty)
+        : await app.createProperty(payload as NewProperty);
       onSaved?.(saved);
       onOpenChange(false);
     } catch (err) {
@@ -158,21 +172,7 @@ export function PropertyDialog({ open, onOpenChange, property, onSaved }: Props)
             <Label htmlFor="prop-addr">{tf("common.address")}</Label>
             <Input id="prop-addr" value={address} onChange={(e) => setAddress(e.target.value)} placeholder={tf("common.placeholder_address")} />
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <Label>{tf("geo.wilaya")}</Label>
-              <Select value={wilaya} onValueChange={setWilaya}>
-                <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
-                <SelectContent>
-                  {WILAYAS.map((w) => <SelectItem key={w.code} value={w.name}>{w.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="prop-commune">{tf("geo.commune")}</Label>
-              <Input id="prop-commune" value={commune} onChange={(e) => setCommune(e.target.value)} />
-            </div>
-          </div>
+          {GeoFields ? <GeoFields value={geoValues} onChange={setGeoValues} /> : null}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <Label htmlFor="prop-city">{tf("common.city")}</Label>

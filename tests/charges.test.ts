@@ -3,12 +3,14 @@ import type { TestEnv } from "./helpers/d1";
 import { createTestEnv } from "./helpers/d1";
 import { call } from "./helpers/api";
 import { resetSeedForTests } from "../src/server/index";
+import { applyDemoFixture } from "./helpers/demo-fixture";
 
 let env: TestEnv;
 
-beforeEach(() => {
+beforeEach(async () => {
   env = createTestEnv();
   resetSeedForTests();
+  await applyDemoFixture(env);
 });
 
 interface LeaseRecord {
