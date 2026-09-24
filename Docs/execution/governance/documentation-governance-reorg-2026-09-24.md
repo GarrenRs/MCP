@@ -2,8 +2,8 @@
 
 Purpose: reorganize the repository documentation into a disciplined, scalable structure —
 **documentation-only governance pass**. No application source, tests, migrations, config,
-scripts, or runtime files were touched. No commit was created; the change set is left in the
-working tree for review (`git status` / `git diff --cached` / `git diff`).
+scripts, or runtime files were touched. Committed as a single documentation-only commit
+`97354b4` (see "Final commit & closure" below).
 
 ## Baseline
 
@@ -125,11 +125,26 @@ fully executed.
 4. **`Docs.zip` disposal** remains deferred (must not be staged/deleted/renamed); root
    `Docs.zip` (38607 B) and `Docs/Docs.zip` (66858 B) are untracked archive artifacts.
 
-## Documentation closure
+## Final commit & closure verification
 
-Change set is **review-ready, not committed**: `git diff --cached` (27 renames),
-`git diff` (content edits), plus the relocated untracked files. Commit only after review, as a
-single documentation-only commit, with **no** `Docs.zip` staged.
+- **Final commit:** `97354b4` — "docs: reorganize documentation governance structure"
+  (full `97354b4d7fc0448841dc0cadfe5ce49a76ad4657`), parent `26d023d`
+  ("docs: establish post-P12 UI finalization governance"), grandparent `4b7177d` (P12).
+- Single documentation-only commit: 30 files, 270 insertions(+), 98 deletions(-); every path
+  under `Docs/` — 27 tracked renames (history preserved, similarity 92–100%), 2 modified
+  authority docs (`00-README.md`, `V1-PHASE-INDEX.md`), 1 new governance record (this report).
+  Zero non-documentation files in the commit. [VERIFIED — `git show --stat` / `--name-only HEAD`]
+- `Docs.zip` (root, 38607 B) and `Docs/Docs.zip` **not part of the commit**, never staged,
+  never deleted/renamed/modified by this pass. [VERIFIED]
+- Post-commit `git status --short`: only the pre-existing working-tree exceptions remain
+  (uncommitted Phase A UI-Finalization implementation `src/client/**`, `index.html`,
+  `tests/audit.test.ts`; `.opencode/agent/*`; `.playwright-mcp/`; `tc.txt`/`tc3.txt`/
+  `vt.txt`/`vt3.txt`; `src/client/components/empty-state.tsx`; untracked
+  `Docs/execution/P5–P8/` + `Docs/execution/ui-finalization/` logs; both zip artifacts).
+  No `Docs/` file modified after the commit except this record. [VERIFIED]
+- **Observed external change, not caused by this pass:** `Docs/Docs.zip` was replaced
+  externally — 119342 B @ 24/09/2026 10:03:59 at closure vs 66858 B @ 21/09/2026 11:38:45
+  at pass start (root `Docs.zip` unchanged). Recorded as a working-tree exception; never
+  staged or touched by this pass.
 
-— GATE COMPLETE. Next: review of this change set, then commit; afterwards UI Finalization
-(Phase A) closure or Phase B planning as directed.
+— GATE COMPLETE. Next: UI Finalization (Phase A) closure or Phase B planning as directed.
