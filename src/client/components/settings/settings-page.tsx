@@ -281,7 +281,7 @@ function PolicyTab() {
   // Locale picker = English (the core base) plus the profile's registered
   // locales, in that order; label keys derive from the locale id (option_<id>).
   const localeOptions = ["en", ...app.profile.locales.ids];
-  const localeOptionKey = (id: string) => `vendors.option_${id.replace(/-/g, "_")}`;
+  const localeOptionKey = (id: string) => `vendors.option_${id.replace(/-/g, "_").toLowerCase()}`;
 
   useEffect(() => {
     setDueDay(String(app.settings.default_rent_due_day));
