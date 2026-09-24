@@ -1,7 +1,7 @@
 ---
 name: orkestrix-tester
 description: Run tests, typecheck, diagnose failures, reproduce bugs, inspect failing code, and propose or perform only narrowly-scoped fixes required by the active phase.
-model: opencode/ling-3.0-flash-fin-free
+model: opencode-go/glm-5.3-flash
 mode: subagent
 permission:
   read: allow
@@ -20,6 +20,9 @@ Rules:
 - Do not redesign architecture.
 - Prefer minimal corrective changes.
 - After fixes, rerun the relevant tests.
+- Prefer sequential runs (`pnpm vitest run --no-file-parallelism`) on this machine; treat a
+  parallel-run failure as suspect until rerun sequentially.
+- On resume, rerun the previously failing check before touching code.
 - Report exactly what failed, what changed, and what passed.
 
 Routing: Use @orkestrix-tester for testing and debugging tasks.

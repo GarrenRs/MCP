@@ -23,5 +23,9 @@ Rules:
 - Inspect git diff before commit.
 - Do not commit unless explicitly instructed by the phase prompt.
 - Never touch Docs.zip.
+- On resume after an interruption: first inspect `git status`, `git diff --stat`, and the active
+  execution log's last checkpoint before continuing.
+- If a session must end before completion, record a resume checkpoint in the active execution log:
+  what was done, what remains, exact next step.
 
 Routing: Use orkestrix-builder for implementation tasks.
