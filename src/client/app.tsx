@@ -155,16 +155,30 @@ export function App({ profile }: { profile: ProductProfile }) {
     { label: "admin", items: ADMIN },
   ]);
 
-  // The account footer. Kept as one element so the embedded shell and the
-  // standalone sidebar present the same user card: display name, isolated-LTR
-  // email, then a real logout action. Auth presentation only — the session and
-  // logout calls below are untouched.
+  // The account card. Kept as one element so the embedded shell and the
+  // standalone sidebar present the same identity: initials avatar, display
+  // name, isolated-LTR email, then the logout action. Presentation only —
+  // the session and logout calls below are untouched.
+  const userIdentity = sessionUser ? sessionUser.display_name || sessionUser.email : null;
+  const userInitials = userIdentity
+    ? userIdentity
+        .split(/\s+/)
+        .map((part) => part.charAt(0))
+        .filter(Boolean)
+        .slice(0, 2)
+        .join("")
+        .toUpperCase()
+    : "";
   const footer = authEnabled && sessionUser ? (
-    <div className="app-sidebar-user">
-      <div className="app-sidebar-user-id">
-        <span className="app-sidebar-user-name">{sessionUser.display_name || sessionUser.email}</span>
-        <Bidi dir="ltr" className="app-sidebar-user-email">{sessionUser.email}</Bidi>
+    <div className="app-sidebar-card">
+      <div className="app-sidebar-card-user">
+        <span className="app-sidebar-avatar" aria-hidden>{userInitials}</span>
+        <div className="app-sidebar-card-id">
+          <span className="app-sidebar-card-name">{userIdentity}</span>
+          <Bidi dir="ltr" className="app-sidebar-card-email">{sessionUser.email}</Bidi>
+        </div>
       </div>
+      <div className="app-sidebar-card-divider" aria-hidden />
       <button type="button" className="app-sidebar-logout" onClick={handleLogout}>
         <SignOut size={14} aria-hidden />
         <span>{t("auth.logout")}</span>

@@ -348,14 +348,15 @@
 
 /* ── The standalone rail (ui/sidebar.tsx) ────────────────────────────────────
    Outside the Clawnify host the app paints its own sidebar instead of the SDK
-   <AppNav>, so the brand row can carry the ORKESTRIX logo as the primary mark
-   with "Property System" as a quiet descriptor, and the account footer can
-   present the signed-in user and a real logout action. Same design language as
-   the rail it replaces: muted warm surface, 28px rows, ink-wash active state,
-   logical properties throughout so Arabic mirrors instead of being pinned to a
-   physical corner. Below 768px the rail collapses into a scrolling strip (as
-   the SDK's did); the block lives in its own media query so the geometry can
-   never leak up into columns at narrow widths. */
+   <AppNav>, organised as three clear zones: a centered BRAND block (the
+   ORKESTRIX logo lockup with "Property System" beneath it), the NAVIGATION
+   groups, and a compact ACCOUNT card (avatar + identity + logout) pinned to
+   the bottom. Same design language as the rail it replaced: muted warm
+   surface, 28px rows, ink-wash active state, logical properties throughout so
+   Arabic mirrors instead of being pinned to a physical corner. Below 768px
+   the rail collapses into a scrolling strip (as the SDK's did); the block
+   lives in its own media query so the geometry can never leak up into columns
+   at narrow widths. */
 .app-sidebar {
   display: flex;
   flex-direction: column;
@@ -370,16 +371,19 @@
   }
 }
 
-/* ── Brand row: 56px like the page toolbar, so the rule beneath it runs on
-      one continuous line across the shell. The logo lockup is the primary
-      identity; the descriptor is secondary and must not compete with it. ── */
+/* ── Brand block: the ORKESTRIX logo lockup centered, with "Property System"
+      as a quiet secondary descriptor directly beneath it — a deliberate
+      product-identity section (no decorative background, no shadow). The
+      logo is the primary accent; the descriptor sits one rung below the nav
+      items' weight. ── */
 .app-sidebar-brand {
   flex-shrink: 0;
-  height: 3.5rem;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 0.625rem;
-  padding: 0 1rem;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1.375rem 1.25rem 1.25rem;
   border-bottom: 1px solid var(--sidebar-border);
   color: inherit;
   text-decoration: none;
@@ -387,7 +391,7 @@
 a.app-sidebar-brand:hover { background: rgba(0, 0, 0, 0.03); }
 .app-sidebar-logo {
   display: block;
-  width: 5rem;                          /* 80px × 40px — the 2:1 lockup, undistorted */
+  width: 6.5rem;                        /* 104px × 52px — the 2:1 lockup, undistorted, the dominant mark */
   height: auto;
   flex-shrink: 0;
 }
@@ -396,6 +400,7 @@ a.app-sidebar-brand:hover { background: rgba(0, 0, 0, 0.03); }
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-align: center;
   font-size: 0.8125rem;
   font-weight: 500;
   letter-spacing: 0;
@@ -458,40 +463,72 @@ a.app-sidebar-brand:hover { background: rgba(0, 0, 0, 0.03); }
 }
 .app-sidebar-item[data-active] .app-sidebar-count { color: var(--muted-foreground); }
 
-/* ── Account footer: the signed-in user above a real logout action. The
-      logout is an intentional account action, so it is an explicit button:
-      muted until hovered, then destructive text on the same quiet wash. ── */
+/* ── Account card: a compact, contained identity/control card pinned to the
+      bottom of the rail. Identity — initials avatar, name, muted LTR email —
+      sits above a hairline rule, then the logout action: quiet by default,
+      destructive on hover, never competing with navigation. One icon family
+      (phosphor, 14px), no decorative icons. ── */
 .app-sidebar-footer {
   flex-shrink: 0;
   padding: 0.5rem;
   border-top: 1px solid var(--sidebar-border);
 }
-.app-sidebar-user {
+.app-sidebar-card {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.375rem;
+  padding: 0.625rem;
+  border-radius: 12px;
+  border: 1px solid var(--sidebar-border);
+  background: var(--background);
 }
-.app-sidebar-user-id {
+.app-sidebar-card-user {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+.app-sidebar-avatar {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9999px;
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--foreground);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+.app-sidebar-card-id {
+  min-width: 0;
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 0.125rem;
-  padding: 0.25rem 0.5rem 0.375rem;
 }
-.app-sidebar-user-name {
+.app-sidebar-card-name {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 0.875rem;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: -0.01em;
   color: var(--foreground);
 }
-.app-sidebar-user-email {
+.app-sidebar-card-email {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 0.75rem;
   color: var(--muted-foreground);
+}
+.app-sidebar-card-divider {
+  height: 1px;
+  background: var(--sidebar-border);
+  margin-inline: 0.125rem;
 }
 .app-sidebar-logout {
   display: flex;
@@ -499,7 +536,7 @@ a.app-sidebar-brand:hover { background: rgba(0, 0, 0, 0.03); }
   gap: 0.5rem;
   width: 100%;
   height: 1.75rem;
-  padding-inline: 0.5rem 1rem;
+  padding-inline: 0.5rem;
   border: 0;
   border-radius: 9px;
   background: none;
@@ -522,11 +559,12 @@ a.app-sidebar-brand:hover { background: rgba(0, 0, 0, 0.03); }
   .app-sidebar-item:hover,
   .app-sidebar-logout:hover { background: rgba(255, 255, 255, 0.04); }
   .app-sidebar-item[data-active] { background: rgba(255, 255, 255, 0.06); }
+  .app-sidebar-avatar { background: rgba(255, 255, 255, 0.08); }
 }
 
-/* Narrow: the rail collapses into one horizontal strip; the brand row becomes
-   a compact logo link (descriptor hidden) and the footer drops away — the same
-   strip the SDK drew, with the logo kept usable. */
+/* Narrow: the rail collapses into one horizontal strip; the brand collapses
+   into a compact logo link (descriptor hidden) and the footer drops away —
+   the same strip pattern the SDK drew, with the logo kept usable. */
 @media (max-width: 767px) {
   .app-sidebar {
     width: 100%;
@@ -536,6 +574,9 @@ a.app-sidebar-brand:hover { background: rgba(0, 0, 0, 0.03); }
   }
   .app-sidebar-brand {
     height: 3.5rem;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 0;
     padding: 0 0.75rem;
     border-bottom: 0;
   }
