@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
-import { AppNav, reportLocation, type AppNavItem } from "@clawnify/app/client";
+import { AppNav, embedded, reportLocation, type AppNavItem } from "@clawnify/app/client";
+import { SignOut } from "@phosphor-icons/react";
 import { api, setOnUnauthorized } from "./api";
 import { useAppState } from "./hooks/use-app-state";
 import { useRouter, type Route } from "./hooks/use-router";
@@ -16,6 +17,8 @@ import { RentPage } from "./components/rent/rent-page";
 import { MaintenancePage } from "./components/maintenance/maintenance-page";
 import { ApplicationsPage } from "./components/applications/applications-page";
 import { SettingsPage } from "./components/settings/settings-page";
+import { Sidebar } from "./components/ui/sidebar";
+import { Bidi } from "./components/ui/bidi";
 import { t } from "./i18n";
 import type { ProductProfile } from "./profile-types";
 
@@ -152,24 +155,46 @@ export function App({ profile }: { profile: ProductProfile }) {
     { label: "admin", items: ADMIN },
   ]);
 
+  // The account footer. Kept as one element so the embedded shell and the
+  // standalone sidebar present the same user card: display name, isolated-LTR
+  // email, then a real logout action. Auth presentation only — the session and
+  // logout calls below are untouched.
+  const footer = authEnabled && sessionUser ? (
+    <div className="app-sidebar-user">
+      <div className="app-sidebar-user-id">
+        <span className="app-sidebar-user-name">{sessionUser.display_name || sessionUser.email}</span>
+        <Bidi dir="ltr" className="app-sidebar-user-email">{sessionUser.email}</Bidi>
+      </div>
+      <button type="button" className="app-sidebar-logout" onClick={handleLogout}>
+        <SignOut size={14} aria-hidden />
+        <span>{t("auth.logout")}</span>
+      </button>
+    </div>
+  ) : undefined;
+
   return (
     <AppContext.Provider value={{ ...state, profile }}>
       <div className="flex h-screen min-h-0 flex-col overflow-hidden bg-background text-foreground md:flex-row">
         <div className="flex shrink-0">
-          <AppNav
-            title={t("app.brand")}
-            icon="home"
-            groups={groups}
-            active={activeFor(route)}
-            onNavigate={(item) => navigate(item.href ?? "/dashboard")}
-          >
-            {authEnabled && sessionUser && (
-              <div className="flex flex-col gap-1 p-2 text-xs text-muted-foreground">
-                <span>{sessionUser.email}</span>
-                <button className="text-start hover:underline" onClick={handleLogout}>{t("auth.logout")}</button>
-              </div>
-            )}
-          </AppNav>
+          {embedded ? (
+            <AppNav
+              title={t("app.brand")}
+              icon="home"
+              groups={groups}
+              active={activeFor(route)}
+              onNavigate={(item) => navigate(item.href ?? "/dashboard")}
+            >
+              {footer}
+            </AppNav>
+          ) : (
+            <Sidebar
+              groups={groups}
+              active={activeFor(route)}
+              onNavigate={(item) => navigate(item.href ?? "/dashboard")}
+            >
+              {footer}
+            </Sidebar>
+          )}
         </div>
         <main className="flex min-w-0 flex-1 flex-col overflow-hidden">
           {state.loading ? (

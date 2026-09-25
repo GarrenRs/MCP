@@ -1,6 +1,7 @@
 {
   "app": {
     "brand": "ORKESTRIX Property System",
+    "descriptor": "Property System",
     "loading": "جاري التحميل…",
     "not_found_title": "الصفحة غير موجودة",
     "not_found_msg": "الصفحة التي تبحث عنها غير موجودة."

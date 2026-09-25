@@ -1,6 +1,7 @@
 {
   "app": {
     "brand": "ORKESTRIX Property System",
+    "descriptor": "Property System",
     "loading": "Chargement…",
     "not_found_title": "Introuvable",
     "not_found_msg": "Cette page n'existe pas."

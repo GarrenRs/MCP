@@ -1,6 +1,7 @@
 {
   "app": {
-    "brand": "ORKESTRIX Property System"
+    "brand": "ORKESTRIX Property System",
+    "descriptor": "Property System"
   },
   "geo": {
     "wilaya": "Wilaya",

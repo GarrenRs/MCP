@@ -346,85 +346,212 @@
   .app-icon { @apply inline-flex shrink-0 items-center justify-center rounded-md bg-brand text-on-brand; }
 }
 
-/* ── The standalone rail (SDK <AppNav>) brought to the shell spec ───────────
-   @clawnify/app injects its own <style> inside <aside class="cn-nav"> and
-   reads --surface / --sunken / --primary / --muted with hard-coded fallbacks.
-   None of those are the roles this app gives those names — its --muted is a
-   TEXT colour where shadcn's is a background — so aliasing the tokens would
-   paint the rail wrong rather than right. An inline <style> later in the DOM
-   beats a same-specificity rule from the bundle, so these are written at
-   `aside.cn-nav …` specificity.
-
-   That extra specificity is also the trap: the SDK turns the rail into a
-   horizontal strip under 768px, and specificity is resolved before source
-   order, so an unguarded `aside.cn-nav { width }` here outranks that rule at
-   EVERY width — a 275px column on a 390px phone, scrolling the page sideways.
-   So anything setting the rail's GEOMETRY sits in the min-width block below;
-   only paint and type are global.
-
-   The block is shared with the other bundle members deliberately: the rail is
-   the thing a user recognises before reading a word, so it must not differ per
-   member. The proper home is the SDK's own CSS; this is the interim. */
-aside.cn-nav {
+/* ── The standalone rail (ui/sidebar.tsx) ────────────────────────────────────
+   Outside the Clawnify host the app paints its own sidebar instead of the SDK
+   <AppNav>, so the brand row can carry the ORKESTRIX logo as the primary mark
+   with "Property System" as a quiet descriptor, and the account footer can
+   present the signed-in user and a real logout action. Same design language as
+   the rail it replaces: muted warm surface, 28px rows, ink-wash active state,
+   logical properties throughout so Arabic mirrors instead of being pinned to a
+   physical corner. Below 768px the rail collapses into a scrolling strip (as
+   the SDK's did); the block lives in its own media query so the geometry can
+   never leak up into columns at narrow widths. */
+.app-sidebar {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
   background: var(--sidebar);
   color: var(--foreground);
-  text-align: start !important;
 }
-aside.cn-nav .cn-nav-brand {
-  height: 3.5rem;                       /* = the page toolbar, so the rule runs across */
+@media (min-width: 768px) {
+  .app-sidebar {
+    width: 275px;
+    border-inline-end: 1px solid var(--sidebar-border);
+  }
+}
+
+/* ── Brand row: 56px like the page toolbar, so the rule beneath it runs on
+      one continuous line across the shell. The logo lockup is the primary
+      identity; the descriptor is secondary and must not compete with it. ── */
+.app-sidebar-brand {
+  flex-shrink: 0;
+  height: 3.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
   padding: 0 1rem;
   border-bottom: 1px solid var(--sidebar-border);
-  font-size: 0.9375rem;
-  font-weight: 600;
+  color: inherit;
+  text-decoration: none;
 }
-aside.cn-nav a.cn-nav-brand:hover { background: rgba(0, 0, 0, 0.03); }
-aside.cn-nav .cn-nav-brand > svg { color: var(--brand); }
-aside.cn-nav .cn-nav-eyebrow {
+a.app-sidebar-brand:hover { background: rgba(0, 0, 0, 0.03); }
+.app-sidebar-logo {
+  display: block;
+  width: 5rem;                          /* 80px × 40px — the 2:1 lockup, undistorted */
+  height: auto;
+  flex-shrink: 0;
+}
+.app-sidebar-descriptor {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--muted-foreground);
+}
+
+/* ── Navigation groups ────────────────────────────────────────────────────── */
+.app-sidebar-groups {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0.5rem;
+}
+.app-sidebar-group + .app-sidebar-group { margin-top: 0.75rem; }
+.app-sidebar-eyebrow {
   margin: 0 0 0.125rem;
   padding: 0 0.5rem;
   font-size: 0.8125rem;
   font-weight: 500;
-  text-transform: none;                 /* sentence case, not small caps */
   letter-spacing: 0;
   color: var(--muted-foreground);
 }
-aside.cn-nav .cn-nav-item {
-  height: 1.75rem;                      /* 28px rows, measured on Attio */
-  padding-inline: 0.5rem 1rem;
+.app-sidebar-item {
+  display: flex;
+  align-items: center;
   gap: 0.375rem;
+  width: 100%;
+  height: 1.75rem;                      /* 28px rows, measured on Attio */
+  margin: 0;
+  padding-inline: 0.5rem 1rem;
+  border: 0;
   border-radius: 9px;
+  background: none;
+  color: var(--foreground);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  text-align: start;
+  text-decoration: none;
+  cursor: pointer;
+}
+.app-sidebar-item:hover { background: rgba(0, 0, 0, 0.03); }
+.app-sidebar-item[data-active] {
+  background: rgba(0, 0, 0, 0.04);      /* neutral, not the brand hue */
+  color: var(--foreground);
+}
+.app-sidebar-item:focus-visible { outline: 2px solid var(--ring); outline-offset: -2px; }
+.app-sidebar-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.app-sidebar-count {
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted-foreground);
+}
+.app-sidebar-item[data-active] .app-sidebar-count { color: var(--muted-foreground); }
+
+/* ── Account footer: the signed-in user above a real logout action. The
+      logout is an intentional account action, so it is an explicit button:
+      muted until hovered, then destructive text on the same quiet wash. ── */
+.app-sidebar-footer {
+  flex-shrink: 0;
+  padding: 0.5rem;
+  border-top: 1px solid var(--sidebar-border);
+}
+.app-sidebar-user {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.app-sidebar-user-id {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding: 0.25rem 0.5rem 0.375rem;
+}
+.app-sidebar-user-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 0.875rem;
   font-weight: 500;
   letter-spacing: -0.01em;
   color: var(--foreground);
 }
-aside.cn-nav .cn-nav-item:hover { background: rgba(0, 0, 0, 0.03); }
-aside.cn-nav .cn-nav-item[data-active] {
-  background: rgba(0, 0, 0, 0.04);      /* neutral, not the brand hue */
-  color: var(--foreground);
+.app-sidebar-user-email {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+.app-sidebar-logout {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  height: 1.75rem;
+  padding-inline: 0.5rem 1rem;
+  border: 0;
+  border-radius: 9px;
+  background: none;
+  color: var(--muted-foreground);
+  font: inherit;
+  font-size: 0.875rem;
   font-weight: 500;
+  letter-spacing: -0.01em;
+  text-align: start;
+  cursor: pointer;
 }
-aside.cn-nav .cn-nav-item:focus-visible { outline: 2px solid var(--ring); outline-offset: -2px; }
-aside.cn-nav .cn-nav-count { font-size: 0.75rem; color: var(--muted-foreground); }
-aside.cn-nav .cn-nav-item[data-active] .cn-nav-count { color: var(--muted-foreground); }
-
-/* Rail geometry — only where the SDK actually draws a rail. Below this it lays
-   the same markup out as a scrolling strip, and must be left to. */
-@media (min-width: 768px) {
-  aside.cn-nav {
-    width: 275px;
-    border-inline-end: 1px solid var(--sidebar-border);
-  }
-  aside.cn-nav .cn-nav-groups { padding: 0.5rem; }
-  aside.cn-nav .cn-nav-group + .cn-nav-group { margin-top: 0.75rem; }
-  aside.cn-nav .cn-nav-item { margin: 0; }
-  aside.cn-nav .cn-nav-footer { padding: 0.5rem; border-top: 1px solid var(--sidebar-border); }
+.app-sidebar-logout:hover {
+  background: rgba(0, 0, 0, 0.03);
+  color: var(--destructive);
 }
+.app-sidebar-logout:focus-visible { outline: 2px solid var(--ring); outline-offset: -2px; }
 
 @media (prefers-color-scheme: dark) {
-  aside.cn-nav a.cn-nav-brand:hover,
-  aside.cn-nav .cn-nav-item:hover { background: rgba(255, 255, 255, 0.04); }
-  aside.cn-nav .cn-nav-item[data-active] { background: rgba(255, 255, 255, 0.06); }
+  a.app-sidebar-brand:hover,
+  .app-sidebar-item:hover,
+  .app-sidebar-logout:hover { background: rgba(255, 255, 255, 0.04); }
+  .app-sidebar-item[data-active] { background: rgba(255, 255, 255, 0.06); }
+}
+
+/* Narrow: the rail collapses into one horizontal strip; the brand row becomes
+   a compact logo link (descriptor hidden) and the footer drops away — the same
+   strip the SDK drew, with the logo kept usable. */
+@media (max-width: 767px) {
+  .app-sidebar {
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    border-bottom: 1px solid var(--sidebar-border);
+  }
+  .app-sidebar-brand {
+    height: 3.5rem;
+    padding: 0 0.75rem;
+    border-bottom: 0;
+  }
+  .app-sidebar-logo { width: auto; height: 1.75rem; }
+  .app-sidebar-descriptor { display: none; }
+  .app-sidebar-groups {
+    display: flex;
+    gap: 0.25rem;
+    padding: 0.5rem 0.25rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+  .app-sidebar-group { display: flex; gap: 0.25rem; }
+  .app-sidebar-group + .app-sidebar-group { margin-top: 0; }
+  .app-sidebar-item { width: auto; white-space: nowrap; }
+  .app-sidebar-footer { display: none; }
 }
 
 /* Agent mode (?agent / mode=agent sets data-agent on <html>): interactive
