@@ -10,7 +10,14 @@
     BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-[dir=rtl] aside.cn-nav .cn-nav-item { letter-spacing: 0; }
+[dir=rtl] aside.cn-nav .cn-nav-item { letter-spacing: 0; text-align: start; }
+
+/* The SDK's rail styles pin item labels to text-align:left. In RTL the label
+   sits inside a mirrored flex row (icon on the right), so a hard left
+   alignment leaves the Arabic text stranded 100+ px from its icon. `start`
+   follows the item's resolved direction (right in RTL) without touching dir. */
+[dir=rtl] aside.cn-nav .cn-nav-label,
+[dir=rtl] aside.cn-nav .cn-nav-eyebrow { text-align: start; }
 
 /* Arabic typography tuning: loosen line-height and disable tracking that breaks
    Arabic letter joining. Applied by lang (set from locale) and by dir. */
