@@ -4,6 +4,7 @@ import { useApp } from "@/context";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Bidi } from "@/components/ui/bidi";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TenantDialog } from "./tenant-dialog";
 import type { Tenant } from "@/types";
@@ -102,14 +103,14 @@ export function TenantsList({ navigate }: { navigate: (to: string) => void }) {
                     <TableCell>
                       {t.email ? (
                         <span className="inline-flex items-center gap-1 text-sm text-muted-foreground">
-                          <Mail className="h-3 w-3" /> {t.email}
+                          <Mail className="h-3 w-3" /> <Bidi dir="ltr">{t.email}</Bidi>
                         </span>
                       ) : <span className="text-xs text-muted-foreground">—</span>}
                     </TableCell>
                     <TableCell>
                       {t.phone ? (
                         <span className="inline-flex items-center gap-1 text-sm text-muted-foreground">
-                          <Phone className="h-3 w-3" /> {t.phone}
+                          <Phone className="h-3 w-3" /> <Bidi dir="ltr">{t.phone}</Bidi>
                         </span>
                       ) : <span className="text-xs text-muted-foreground">—</span>}
                     </TableCell>

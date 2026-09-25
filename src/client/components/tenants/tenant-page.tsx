@@ -4,6 +4,7 @@ import { useApp } from "@/context";
 import { api } from "@/api";
 import { cn, formatDate, formatMoney } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Bidi } from "@/components/ui/bidi";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/empty-state";
 import { TenantDialog } from "./tenant-dialog";
@@ -79,8 +80,8 @@ export function TenantPage({ id, navigate }: { id: number; navigate: (to: string
             <div>
               <h1 className="text-[1.375rem] font-semibold leading-tight tracking-[-0.01em]">{tenant.first_name} {tenant.last_name}</h1>
               <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
-                {tenant.email && <span className="inline-flex items-center gap-1"><Mail className="h-3 w-3" /> {tenant.email}</span>}
-                {tenant.phone && <span className="inline-flex items-center gap-1"><Phone className="h-3 w-3" /> {tenant.phone}</span>}
+                {tenant.email && <span className="inline-flex items-center gap-1"><Mail className="h-3 w-3" /> <Bidi dir="ltr">{tenant.email}</Bidi></span>}
+                {tenant.phone && <span className="inline-flex items-center gap-1"><Phone className="h-3 w-3" /> <Bidi dir="ltr">{tenant.phone}</Bidi></span>}
               </div>
             </div>
           </div>

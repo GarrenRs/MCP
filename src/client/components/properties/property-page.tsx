@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { ArrowLeft, Building2, MapPin, Pencil, Plus, Wrench } from "lucide-react";
 import { useApp } from "@/context";
 import { api } from "@/api";
 import { cn, colorClasses, formatDate, formatMoney } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Bidi } from "@/components/ui/bidi";
 import { Card } from "@/components/ui/card";
 import { PropertyDialog } from "./property-dialog";
 import { UnitDialog } from "./unit-dialog";
@@ -118,7 +119,7 @@ export function PropertyPage({ id, navigate }: { id: number; navigate: (to: stri
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-[1.375rem] font-semibold leading-tight tracking-[-0.01em]">{property.name}</h1>
+                <h1 className="text-[1.375rem] font-semibold leading-tight tracking-[-0.01em]"><Bidi>{property.name}</Bidi></h1>
                 <span className="chip">
                   {tf(`property_type.${property.type}`)}
                 </span>
@@ -126,7 +127,7 @@ export function PropertyPage({ id, navigate }: { id: number; navigate: (to: stri
               {(property.address || property.city || geoValuesFor(property).some(Boolean)) && (
                 <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
                   <MapPin className="h-3 w-3" />
-                  {[property.address, ...geoValuesFor(property), property.country, property.city, property.state, property.zip].filter(Boolean).join(", ")}
+                  <Bidi>{[property.address, ...geoValuesFor(property), property.country, property.city, property.state, property.zip].filter(Boolean).join(", ")}</Bidi>
                 </p>
               )}
             </div>
@@ -204,7 +205,12 @@ export function PropertyPage({ id, navigate }: { id: number; navigate: (to: stri
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium">{w.title}</p>
                       <p className="truncate text-xs text-muted-foreground">
-                        {[w.unit_name, w.vendor_name, formatDate(w.created_at)].filter(Boolean).join(" · ")}
+                        {[w.unit_name, w.vendor_name, formatDate(w.created_at)].filter(Boolean).map((part, idx) => (
+                          <Fragment key={idx}>
+                            {idx > 0 && <span aria-hidden> · </span>}
+                            <Bidi>{part}</Bidi>
+                          </Fragment>
+                        ))}
                       </p>
                     </div>
                   </div>

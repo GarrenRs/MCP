@@ -3,6 +3,7 @@ import { Building2, Download, MapPin, Plus } from "lucide-react";
 import { useApp } from "@/context";
 import { cn, colorClasses } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Bidi } from "@/components/ui/bidi";
 import { Card } from "@/components/ui/card";
 import { PropertyDialog } from "./property-dialog";
 import type { Property } from "@/types";
@@ -70,11 +71,11 @@ export function PropertiesList({ navigate }: { navigate: (to: string) => void })
                       {tf(`property_type.${p.type}`)}
                     </span>
                   </div>
-                  <h3 className="font-semibold tracking-tight">{p.name}</h3>
+                  <h3 className="font-semibold tracking-tight"><Bidi>{p.name}</Bidi></h3>
                   {(p.address || p.city || geoValuesFor(p).some(Boolean)) && (
                     <p className="mt-1 flex items-center gap-1 truncate text-sm text-muted-foreground">
                       <MapPin className="h-3 w-3 shrink-0" />
-                      {geoLine(p)}
+                      <Bidi>{geoLine(p)}</Bidi>
                     </p>
                   )}
                   <div className="mt-4 grid grid-cols-3 gap-3 border-t pt-4 text-sm">

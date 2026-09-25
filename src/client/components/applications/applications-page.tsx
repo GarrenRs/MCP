@@ -3,6 +3,7 @@ import { FileText, Phone, Plus, Search } from "lucide-react";
 import { useApp } from "@/context";
 import { cn, formatDate } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Bidi } from "@/components/ui/bidi";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -127,7 +128,7 @@ export function ApplicationsPage() {
                     </TableCell>
                     <TableCell>
                       {a.email ? (
-                        <span className="text-sm text-muted-foreground">{a.email}</span>
+                        <span className="text-sm text-muted-foreground"><Bidi dir="ltr">{a.email}</Bidi></span>
                       ) : (
                         <span className="text-xs text-muted-foreground">—</span>
                       )}
@@ -135,7 +136,7 @@ export function ApplicationsPage() {
                     <TableCell>
                       {a.phone ? (
                         <span className="inline-flex items-center gap-1 text-sm text-muted-foreground">
-                          <Phone className="h-3 w-3" /> {a.phone}
+                          <Phone className="h-3 w-3" /> <Bidi dir="ltr">{a.phone}</Bidi>
                         </span>
                       ) : (
                         <span className="text-xs text-muted-foreground">—</span>

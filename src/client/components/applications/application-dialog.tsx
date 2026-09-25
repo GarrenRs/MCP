@@ -158,11 +158,11 @@ export function ApplicationDialog({ open, onOpenChange, application, onSaved }: 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <Label htmlFor="app-email">{tf("common.email")}</Label>
-              <Input id="app-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+              <Input id="app-email" type="email" dir="ltr" value={email} onChange={(e) => setEmail(e.target.value)} />
             </div>
             <div>
               <Label htmlFor="app-phone">{tf("common.phone")}</Label>
-              <Input id="app-phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
+              <Input id="app-phone" dir="ltr" value={phone} onChange={(e) => setPhone(e.target.value)} />
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

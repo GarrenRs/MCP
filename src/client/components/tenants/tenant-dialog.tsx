@@ -101,11 +101,11 @@ export function TenantDialog({ open, onOpenChange, tenant, onSaved }: Props) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <Label htmlFor="t-email">{tf("common.email")}</Label>
-              <Input id="t-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+              <Input id="t-email" type="email" dir="ltr" value={email} onChange={(e) => setEmail(e.target.value)} />
             </div>
             <div>
               <Label htmlFor="t-phone">{tf("common.phone")}</Label>
-              <Input id="t-phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
+              <Input id="t-phone" dir="ltr" value={phone} onChange={(e) => setPhone(e.target.value)} />
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

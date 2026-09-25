@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { Pencil, Plus, Trash2, Wrench } from "lucide-react";
 import { useApp } from "@/context";
 import { cn, colorClasses } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Bidi } from "@/components/ui/bidi";
 import { ConfirmDelete } from "@/components/ui/alert-dialog";
 import { Card } from "@/components/ui/card";
 import {
@@ -107,7 +108,16 @@ function VendorsTab() {
                   <div>
                     <div className="font-medium">{v.name}</div>
                     <div className="text-xs text-muted-foreground">
-                      {[v.phone, v.email].filter(Boolean).join(" · ") || "—"}
+                      {[v.phone, v.email].filter(Boolean).length === 0 ? (
+                        "—"
+                      ) : (
+                        [v.phone, v.email].filter(Boolean).map((val, idx) => (
+                          <Fragment key={idx}>
+                            {idx > 0 && <span aria-hidden> · </span>}
+                            <Bidi dir="ltr">{val}</Bidi>
+                          </Fragment>
+                        ))
+                      )}
                     </div>
                   </div>
                 </div>
@@ -228,11 +238,11 @@ function VendorDialog({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <Label htmlFor="v-phone">{tf("common.phone")}</Label>
-              <Input id="v-phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
+              <Input id="v-phone" dir="ltr" value={phone} onChange={(e) => setPhone(e.target.value)} />
             </div>
             <div>
               <Label htmlFor="v-email">{tf("common.email")}</Label>
-              <Input id="v-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+              <Input id="v-email" type="email" dir="ltr" value={email} onChange={(e) => setEmail(e.target.value)} />
             </div>
           </div>
           <div>

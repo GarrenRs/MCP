@@ -139,7 +139,7 @@ export function PropertyDialog({ open, onOpenChange, property, onSaved }: Props)
         <div className="grid gap-3">
           <div>
             <Label htmlFor="prop-name">{tf("common.name")}</Label>
-            <Input id="prop-name" value={name} onChange={(e) => setName(e.target.value)} placeholder={tf("common.placeholder_property_name")} />
+            <Input id="prop-name" dir="auto" value={name} onChange={(e) => setName(e.target.value)} placeholder={tf("common.placeholder_property_name")} />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
@@ -170,7 +170,7 @@ export function PropertyDialog({ open, onOpenChange, property, onSaved }: Props)
           </div>
           <div>
             <Label htmlFor="prop-addr">{tf("common.address")}</Label>
-            <Input id="prop-addr" value={address} onChange={(e) => setAddress(e.target.value)} placeholder={tf("common.placeholder_address")} />
+            <Input id="prop-addr" dir="auto" value={address} onChange={(e) => setAddress(e.target.value)} placeholder={tf("common.placeholder_address")} />
           </div>
           {GeoFields ? <GeoFields value={geoValues} onChange={setGeoValues} /> : null}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
