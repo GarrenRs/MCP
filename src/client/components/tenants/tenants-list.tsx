@@ -79,6 +79,7 @@ export function TenantsList({ navigate }: { navigate: (to: string) => void }) {
               <TableHeader>
                 <TableRow>
                   <TableHead>{tf("tenants.name")}</TableHead>
+                  <TableHead>{tf("tenants.property")}</TableHead>
                   <TableHead>{tf("tenants.active_unit")}</TableHead>
                   <TableHead>{tf("tenants.email")}</TableHead>
                   <TableHead>{tf("tenants.phone")}</TableHead>
@@ -90,12 +91,16 @@ export function TenantsList({ navigate }: { navigate: (to: string) => void }) {
                     <TableCell className="font-medium">
                       {t.first_name} {t.last_name}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="whitespace-normal">
+                      {t.active_property_name ? (
+                        <span className="text-sm text-muted-foreground">{t.active_property_name}</span>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="whitespace-normal">
                       {t.active_unit_name ? (
-                        <span className="text-sm">
-                          {t.active_property_name && <span className="text-muted-foreground">{t.active_property_name} · </span>}
-                          {t.active_unit_name}
-                        </span>
+                        <span className="text-sm font-medium">{t.active_unit_name}</span>
                       ) : (
                         <span className="text-xs text-muted-foreground">—</span>
                       )}

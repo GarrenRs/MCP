@@ -7,7 +7,6 @@ import { Bidi } from "@/components/ui/bidi";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { PropertyUnit } from "@/components/ui/property-unit";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ApplicationDialog } from "./application-dialog";
 import type { Application, ApplicationStatus } from "@/types";
@@ -103,7 +102,8 @@ export function ApplicationsPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>{tf("common.name")}</TableHead>
-                  <TableHead>{tf("applications.property_unit")}</TableHead>
+                  <TableHead>{tf("applications.property")}</TableHead>
+                  <TableHead>{tf("applications.unit")}</TableHead>
                   <TableHead>{tf("common.email")}</TableHead>
                   <TableHead>{tf("common.phone")}</TableHead>
                   <TableHead>{tf("applications.move_in")}</TableHead>
@@ -117,8 +117,19 @@ export function ApplicationsPage() {
                     <TableCell className="font-medium">
                       {a.first_name} {a.last_name}
                     </TableCell>
-                    <TableCell>
-                      <PropertyUnit property={a.property_name} unit={a.unit_name} />
+                    <TableCell className="whitespace-normal">
+                      {a.property_name ? (
+                        <span className="text-sm text-muted-foreground">{a.property_name}</span>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="whitespace-normal">
+                      {a.unit_name ? (
+                        <span className="text-sm font-medium">{a.unit_name}</span>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
                     </TableCell>
                     <TableCell>
                       {a.email ? (

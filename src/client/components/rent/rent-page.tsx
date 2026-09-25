@@ -5,7 +5,6 @@ import { addMonths, cn, currentPeriod, formatDate, formatMoney, formatPeriod } f
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { PropertyUnit } from "@/components/ui/property-unit";
 import { PaymentDialog } from "./payment-dialog";
 import { ChargeEditDialog } from "./charge-edit-dialog";
 import type { ChargeStatus, RentCharge } from "@/types";
@@ -137,7 +136,8 @@ export function RentPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{tf("rent.property_unit")}</TableHead>
+                  <TableHead>{tf("rent.property")}</TableHead>
+                  <TableHead>{tf("rent.unit")}</TableHead>
                   <TableHead>{tf("rent.tenant")}</TableHead>
                   <TableHead>{tf("rent.due")}</TableHead>
                   <TableHead className="text-end">{tf("rent.charged")}</TableHead>
@@ -152,10 +152,21 @@ export function RentPage() {
                   const balance = Math.max(0, (c.amount ?? 0) - (c.amount_paid ?? 0));
                   return (
                     <TableRow key={c.id}>
-                      <TableCell>
-                        <PropertyUnit property={c.property_name} unit={c.unit_name} />
+                      <TableCell className="whitespace-normal">
+                        {c.property_name ? (
+                          <span className="text-sm text-muted-foreground">{c.property_name}</span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="whitespace-normal">
+                        {c.unit_name ? (
+                          <span className="text-sm font-medium">{c.unit_name}</span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="whitespace-normal">
                         {c.tenant_first_name ? (
                           <span className="text-sm">{c.tenant_first_name} {c.tenant_last_name}</span>
                         ) : (

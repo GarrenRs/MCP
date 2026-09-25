@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { PropertyUnit } from "@/components/ui/property-unit";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LeaseDialog } from "./lease-dialog";
 import type { Lease, LeaseStatus } from "@/types";
@@ -92,7 +91,8 @@ export function LeasesPage({ navigate }: { navigate: (to: string) => void }) {
               <TableHeader>
                 <TableRow>
                   <TableHead>{tf("leases.tenant")}</TableHead>
-                  <TableHead>{tf("leases.property_unit")}</TableHead>
+                  <TableHead>{tf("leases.property")}</TableHead>
+                  <TableHead>{tf("leases.unit")}</TableHead>
                   <TableHead>{tf("leases.term")}</TableHead>
                   <TableHead className="text-end">{tf("leases.rent")}</TableHead>
                   <TableHead>{tf("leases.status")}</TableHead>
@@ -122,8 +122,19 @@ export function LeasesPage({ navigate }: { navigate: (to: string) => void }) {
                           <span className="text-xs text-muted-foreground">{tf("common.no_tenant")}</span>
                         )}
                       </TableCell>
-                      <TableCell>
-                        <PropertyUnit property={l.property_name} unit={l.unit_name} />
+                      <TableCell className="whitespace-normal">
+                        {l.property_name ? (
+                          <span className="text-sm text-muted-foreground">{l.property_name}</span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="whitespace-normal">
+                        {l.unit_name ? (
+                          <span className="text-sm font-medium">{l.unit_name}</span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
                       </TableCell>
                       <TableCell>
                         <div className="text-sm">{formatDate(l.start_date)} → {formatDate(l.end_date)}</div>
