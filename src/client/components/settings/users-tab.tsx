@@ -16,6 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Bidi } from "@/components/ui/bidi";
 import { t } from "@/i18n";
 
 interface UserRecord {
@@ -76,7 +77,7 @@ export function UsersTab({ currentUserRole }: { currentUserRole: string }) {
             <li key={u.id} className="flex items-center justify-between gap-3 p-4">
               <div>
                 <div className="font-medium">{u.display_name}</div>
-                <div className="text-xs text-muted-foreground">{u.email}</div>
+                <div className="text-xs text-muted-foreground"><Bidi dir="ltr">{u.email}</Bidi></div>
               </div>
               <div className="flex items-center gap-2">
                 <span className={cn("badge-tone", ROLE_TONE[u.role] ?? "tone-neutral")}>{t(`auth.role_${u.role}`)}</span>
@@ -191,7 +192,7 @@ function UserDialog({
             </div>
             <div>
               <Label htmlFor="u-email">{t("auth.email")}</Label>
-              <Input id="u-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={!isNew} />
+              <Input id="u-email" type="email" dir="ltr" value={email} onChange={(e) => setEmail(e.target.value)} disabled={!isNew} />
             </div>
             <div>
               <Label htmlFor="u-pass">{t("auth.password")}{!isNew ? ` (${t("users.unchanged")})` : ""}</Label>

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Download, Mail, Phone, Plus, Search, Users } from "lucide-react";
+import { Download, Plus, Search, Users } from "lucide-react";
 import { useApp } from "@/context";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -102,15 +102,15 @@ export function TenantsList({ navigate }: { navigate: (to: string) => void }) {
                     </TableCell>
                     <TableCell>
                       {t.email ? (
-                        <span className="inline-flex items-center gap-1 text-sm text-muted-foreground">
-                          <Mail className="h-3 w-3" /> <Bidi dir="ltr">{t.email}</Bidi>
+                        <span className="text-sm text-muted-foreground">
+                          <Bidi dir="ltr">{t.email}</Bidi>
                         </span>
                       ) : <span className="text-xs text-muted-foreground">—</span>}
                     </TableCell>
                     <TableCell>
                       {t.phone ? (
-                        <span className="inline-flex items-center gap-1 text-sm text-muted-foreground">
-                          <Phone className="h-3 w-3" /> <Bidi dir="ltr">{t.phone}</Bidi>
+                        <span className="text-sm text-muted-foreground">
+                          <Bidi dir="ltr">{t.phone}</Bidi>
                         </span>
                       ) : <span className="text-xs text-muted-foreground">—</span>}
                     </TableCell>

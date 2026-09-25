@@ -271,6 +271,7 @@
     "start": "Start",
     "end": "End",
     "security_deposit": "Security deposit",
+    "monthly_rent": "Monthly rent",
     "delete_desc": "The rent charges and payments tied to it go with it. This cannot be undone."
   },
   "rent": {
@@ -312,7 +313,8 @@
     "remove": "Remove",
     "remove_confirm": "Remove the {0} payment?",
     "remove_desc": "The charge it was applied to goes back to its outstanding balance.",
-    "remove_payment": "Remove payment"
+    "remove_payment": "Remove payment",
+    "record_payment": "Record payment"
   },
   "maintenance": {
     "title": "Maintenance",

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { FileText, Phone, Plus, Search } from "lucide-react";
+import { FileText, Plus, Search } from "lucide-react";
 import { useApp } from "@/context";
 import { cn, formatDate } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { Bidi } from "@/components/ui/bidi";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { PropertyUnit } from "@/components/ui/property-unit";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ApplicationDialog } from "./application-dialog";
 import type { Application, ApplicationStatus } from "@/types";
@@ -117,14 +118,7 @@ export function ApplicationsPage() {
                       {a.first_name} {a.last_name}
                     </TableCell>
                     <TableCell>
-                      {a.unit_name ? (
-                        <span className="text-sm">
-                          {a.property_name && <span className="text-muted-foreground">{a.property_name} · </span>}
-                          {a.unit_name}
-                        </span>
-                      ) : (
-                        <span className="text-xs text-muted-foreground">—</span>
-                      )}
+                      <PropertyUnit property={a.property_name} unit={a.unit_name} />
                     </TableCell>
                     <TableCell>
                       {a.email ? (
@@ -135,8 +129,8 @@ export function ApplicationsPage() {
                     </TableCell>
                     <TableCell>
                       {a.phone ? (
-                        <span className="inline-flex items-center gap-1 text-sm text-muted-foreground">
-                          <Phone className="h-3 w-3" /> <Bidi dir="ltr">{a.phone}</Bidi>
+                        <span className="text-sm text-muted-foreground">
+                          <Bidi dir="ltr">{a.phone}</Bidi>
                         </span>
                       ) : (
                         <span className="text-xs text-muted-foreground">—</span>

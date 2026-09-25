@@ -5,6 +5,7 @@ import { addMonths, cn, currentPeriod, formatDate, formatMoney, formatPeriod } f
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { PropertyUnit } from "@/components/ui/property-unit";
 import { PaymentDialog } from "./payment-dialog";
 import { ChargeEditDialog } from "./charge-edit-dialog";
 import type { ChargeStatus, RentCharge } from "@/types";
@@ -152,11 +153,7 @@ export function RentPage() {
                   return (
                     <TableRow key={c.id}>
                       <TableCell>
-                        <div className="text-sm">
-                          <span className="text-muted-foreground">{c.property_name}</span>
-                          <span className="px-1 text-muted-foreground/40">·</span>
-                          <span className="font-medium">{c.unit_name}</span>
-                        </div>
+                        <PropertyUnit property={c.property_name} unit={c.unit_name} />
                       </TableCell>
                       <TableCell>
                         {c.tenant_first_name ? (

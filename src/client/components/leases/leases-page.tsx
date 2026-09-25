@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { PropertyUnit } from "@/components/ui/property-unit";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LeaseDialog } from "./lease-dialog";
 import type { Lease, LeaseStatus } from "@/types";
@@ -122,11 +123,7 @@ export function LeasesPage({ navigate }: { navigate: (to: string) => void }) {
                         )}
                       </TableCell>
                       <TableCell>
-                        <span className="text-sm">
-                          <span className="text-muted-foreground">{l.property_name}</span>
-                          <span className="px-1 text-muted-foreground/40">·</span>
-                          <span className="font-medium">{l.unit_name}</span>
-                        </span>
+                        <PropertyUnit property={l.property_name} unit={l.unit_name} />
                       </TableCell>
                       <TableCell>
                         <div className="text-sm">{formatDate(l.start_date)} → {formatDate(l.end_date)}</div>
