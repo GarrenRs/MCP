@@ -18,9 +18,13 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   charge: RentCharge | null;
   onSaved?: () => void;
+  /** Presentation only — the server enforces row 21/22. When false, the
+   *  sensitive fields (amount / due_date / status) are hidden and never sent,
+   *  so the dialog degrades to a routine notes edit (row 20). */
+  canEditSensitive?: boolean;
 }
 
-export function ChargeEditDialog({ open, onOpenChange, charge, onSaved }: Props) {
+export function ChargeEditDialog({ open, onOpenChange, charge, onSaved, canEditSensitive = true }: Props) {
   const app = useApp();
   const [amount, setAmount] = useState("0");
   const [dueDate, setDueDate] = useState("");
@@ -70,9 +74,9 @@ export function ChargeEditDialog({ open, onOpenChange, charge, onSaved }: Props)
     setSaving(true);
     try {
       const patch: Record<string, unknown> = {};
-      if (a !== charge.amount) patch.amount = a;
-      if (dueDate !== charge.due_date) patch.due_date = dueDate;
-      if (status !== charge.status) patch.status = status;
+      if (canEditSensitive && a !== charge.amount) patch.amount = a;
+      if (canEditSensitive && dueDate !== charge.due_date) patch.due_date = dueDate;
+      if (canEditSensitive && status !== charge.status) patch.status = status;
       if ((notes || null) !== (charge.notes || null)) patch.notes = notes.trim() || null;
       if (Object.keys(patch).length > 0) {
         await api("PUT", `/api/rent-charges/${charge.id}`, patch);
@@ -116,6 +120,8 @@ export function ChargeEditDialog({ open, onOpenChange, charge, onSaved }: Props)
         )}
 
         <div className="grid gap-3">
+          {canEditSensitive && (
+            <>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <Label htmlFor="ce-amount">{tf("charge_edit.amount")}</Label>
@@ -141,6 +147,8 @@ export function ChargeEditDialog({ open, onOpenChange, charge, onSaved }: Props)
             <div className="rounded-md bg-muted/40 p-3 text-xs text-muted-foreground">
               {tf("charge_edit.waived_note")}
             </div>
+          )}
+            </>
           )}
           <div>
             <Label htmlFor="ce-notes">{tf("common.notes")}</Label>

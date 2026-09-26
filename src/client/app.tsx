@@ -83,6 +83,8 @@ interface SessionUser {
   email: string;
   role: string;
   display_name: string;
+  /** Read-only capability list from the server (presentation only). */
+  capabilities?: string[];
 }
 
 export function App({ profile }: { profile: ProductProfile }) {
@@ -139,6 +141,11 @@ export function App({ profile }: { profile: ProductProfile }) {
     navigate("/dashboard");
   }, [navigate]);
 
+  // Read-only capability view for presentation gating. null when there is no
+  // session (auth disabled or logged out) — the UI then shows every control;
+  // the server stays authoritative either way.
+  const capabilities = authEnabled && sessionUser ? (sessionUser.capabilities ?? []) : null;
+
   // Lets the dashboard restore this exact screen on reload.
   useEffect(() => {
     reportLocation(path);
@@ -187,7 +194,7 @@ export function App({ profile }: { profile: ProductProfile }) {
   ) : undefined;
 
   return (
-    <AppContext.Provider value={{ ...state, profile }}>
+    <AppContext.Provider value={{ ...state, profile, capabilities }}>
       <div className="flex h-screen min-h-0 flex-col overflow-hidden bg-background text-foreground md:flex-row">
         <div className="flex shrink-0">
           {embedded ? (
@@ -227,7 +234,7 @@ export function App({ profile }: { profile: ProductProfile }) {
               {route.name === "applications" && <ApplicationsPage />}
               {route.name === "rent" && <RentPage />}
               {route.name === "maintenance" && <MaintenancePage />}
-              {route.name === "settings" && <SettingsPage currentUserRole={sessionUser?.role} />}
+              {route.name === "settings" && <SettingsPage />}
               {route.name === "not-found" && (
                 <Placeholder title={t("app.not_found_title")} message={t("app.not_found_msg")} />
               )}

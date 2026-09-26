@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Download, Pencil, Sparkles, Wallet } from "lucide-react";
-import { useApp } from "@/context";
+import { useApp, hasCap } from "@/context";
+import { CAPS } from "@/permissions";
 import { addMonths, cn, currentPeriod, formatDate, formatMoney, formatPeriod } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -23,6 +24,10 @@ const STATUS_TONE: Record<ChargeStatus, string> = {
 
 export function RentPage() {
   const app = useApp();
+  const { capabilities } = app;
+  const canExportLedger = hasCap(capabilities, CAPS.exportRentLedger);
+  const canEditSensitive = hasCap(capabilities, CAPS.rentChargesUpdateSensitive);
+  const canDeletePayment = hasCap(capabilities, CAPS.paymentsDelete);
   const [period, setPeriod] = useState<string>(currentPeriod());
   const [charges, setCharges] = useState<RentCharge[]>([]);
   const [loading, setLoading] = useState(true);
@@ -95,9 +100,11 @@ export function RentPage() {
               <ChevronRight className="h-4 w-4 rtl:rotate-180" />
             </Button>
           </div>
-          <Button variant="secondary" onClick={() => downloadCsv(`/api/export/rent-ledger?period=${encodeURIComponent(period)}&filename=${encodeURIComponent(tf("export.rent_filename", period))}`, tf("export.rent_filename", period))}>
-            <Download className="h-4 w-4" /> {tf("export.button")}
-          </Button>
+          {canExportLedger && (
+            <Button variant="secondary" onClick={() => downloadCsv(`/api/export/rent-ledger?period=${encodeURIComponent(period)}&filename=${encodeURIComponent(tf("export.rent_filename", period))}`, tf("export.rent_filename", period))}>
+              <Download className="h-4 w-4" /> {tf("export.button")}
+            </Button>
+          )}
           <Button onClick={generate} disabled={generating}>
             <Sparkles className="h-4 w-4" /> {tf("rent.generate")}
           </Button>
@@ -214,12 +221,14 @@ export function RentPage() {
         onOpenChange={(o) => { if (!o) setPaymentTarget(null); }}
         charge={paymentTarget}
         onSaved={load}
+        canDeletePayment={canDeletePayment}
       />
       <ChargeEditDialog
         open={editTarget !== null}
         onOpenChange={(o) => { if (!o) setEditTarget(null); }}
         charge={editTarget}
         onSaved={load}
+        canEditSensitive={canEditSensitive}
       />
     </PageShell>
   );

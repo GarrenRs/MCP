@@ -17,11 +17,14 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   charge: RentCharge | null;
   onSaved?: () => void;
+  /** Presentation only — the server enforces row 26 (Manager DENY). When
+   *  false, the remove button is hidden; recording stays available to all. */
+  canDeletePayment?: boolean;
 }
 
 const METHODS: PaymentMethod[] = ["cash", "check", "ach", "credit", "other"];
 
-export function PaymentDialog({ open, onOpenChange, charge, onSaved }: Props) {
+export function PaymentDialog({ open, onOpenChange, charge, onSaved, canDeletePayment = true }: Props) {
   const app = useApp();
   const [amount, setAmount] = useState("0");
   /** The payment awaiting confirmation — its id is the open state. */
@@ -153,14 +156,16 @@ export function PaymentDialog({ open, onOpenChange, charge, onSaved }: Props) {
                     <span className="text-muted-foreground"> · {formatDate(p.paid_at)} · {tf(`payment_method.${p.method}`)}</span>
                     {p.reference && <span className="text-muted-foreground"> · {p.reference}</span>}
                   </div>
-                  <button
-                    type="button"
-                    className="text-xs text-muted-foreground transition-colors duration-150 hover:text-destructive"
-                    onClick={() => setConfirming(p.id)}
-                    aria-label={tf("payments.remove_confirm", `${formatMoney(p.amount, app.settings.currency)} (${formatDate(p.paid_at)})`)}
-                  >
-                    {tf("payments.remove")}
-                  </button>
+                  {canDeletePayment && (
+                    <button
+                      type="button"
+                      className="text-xs text-muted-foreground transition-colors duration-150 hover:text-destructive"
+                      onClick={() => setConfirming(p.id)}
+                      aria-label={tf("payments.remove_confirm", `${formatMoney(p.amount, app.settings.currency)} (${formatDate(p.paid_at)})`)}
+                    >
+                      {tf("payments.remove")}
+                    </button>
+                  )}
                 </li>
               ))}
             </ul>

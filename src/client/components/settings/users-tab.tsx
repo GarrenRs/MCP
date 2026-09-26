@@ -17,6 +17,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Bidi } from "@/components/ui/bidi";
+import { hasCap } from "@/context";
+import { CAPS } from "@/permissions";
 import { t } from "@/i18n";
 
 interface UserRecord {
@@ -33,7 +35,7 @@ const ROLE_TONE: Record<string, string> = {
   manager: "tone-neutral",
 };
 
-export function UsersTab({ currentUserRole }: { currentUserRole: string }) {
+export function UsersTab({ capabilities }: { capabilities: string[] | null }) {
   const [users, setUsers] = useState<UserRecord[]>([]);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<UserRecord | undefined>(undefined);
@@ -52,7 +54,7 @@ export function UsersTab({ currentUserRole }: { currentUserRole: string }) {
 
   useEffect(() => { loadUsers(); }, []);
 
-  const canManage = currentUserRole === "owner" || currentUserRole === "admin";
+  const canManage = hasCap(capabilities, CAPS.usersRead);
 
   if (!canManage) return null;
 
@@ -95,7 +97,7 @@ export function UsersTab({ currentUserRole }: { currentUserRole: string }) {
         open={open}
         onOpenChange={setOpen}
         user={editing}
-        currentUserRole={currentUserRole}
+        capabilities={capabilities}
         onSaved={loadUsers}
       />
     </Card>
@@ -103,12 +105,12 @@ export function UsersTab({ currentUserRole }: { currentUserRole: string }) {
 }
 
 function UserDialog({
-  open, onOpenChange, user, currentUserRole, onSaved,
+  open, onOpenChange, user, capabilities, onSaved,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   user?: UserRecord;
-  currentUserRole: string;
+  capabilities: string[] | null;
   onSaved: () => void;
 }) {
   const [email, setEmail] = useState("");
@@ -129,7 +131,7 @@ function UserDialog({
   }, [open, user]);
 
   const isNew = !user;
-  const canAssignOwner = currentUserRole === "owner";
+  const canAssignOwner = hasCap(capabilities, CAPS.usersAssignOwner);
   const availableRoles = canAssignOwner ? ["owner", "admin", "manager"] : ["admin", "manager"];
 
   async function save() {
@@ -176,7 +178,7 @@ function UserDialog({
     }
   }
 
-  const canDelete = user && currentUserRole === "owner" && user.role !== "owner";
+  const canDelete = user && hasCap(capabilities, CAPS.usersDelete) && user.role !== "owner";
 
   return (
     <>

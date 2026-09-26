@@ -23,11 +23,19 @@ import {
   parseCookieHeader,
   setSessionCookie,
   clearSessionCookie,
-  hasMinimumRole,
   isAuthEnabled,
   resetAuthCache,
   isSecureRequest,
 } from "./auth";
+import {
+  can,
+  capabilitiesForRole,
+  CAP,
+  isSensitiveChargePatch,
+  mayAssignOwnerRole,
+  mayCreateUser,
+  mayModifyOwnerAccount,
+} from "./permissions";
 import type { SessionUser } from "./auth";
 
 type Env = { Bindings: { DB: D1Database }; Variables: { user: SessionUser | null } };
@@ -146,7 +154,13 @@ app.post("/api/auth/login", async (c) => {
   const { token, expiresAt } = await createSession(user.id);
   c.header("Set-Cookie", setSessionCookie(token, expiresAt, secure));
   return c.json({
-    user: { id: user.id, email: email.toLowerCase().trim(), role: user.role, display_name: user.display_name },
+    user: {
+      id: user.id,
+      email: email.toLowerCase().trim(),
+      role: user.role,
+      display_name: user.display_name,
+      capabilities: capabilitiesForRole(user.role),
+    },
   });
 });
 
@@ -163,7 +177,15 @@ app.get("/api/auth/session", async (c) => {
   if (!token) return c.json({ user: null });
   const user = await getSessionFromToken(token);
   if (!user) return c.json({ user: null });
-  return c.json({ user: { id: user.userId, email: user.email, role: user.role, display_name: user.display_name } });
+  return c.json({
+    user: {
+      id: user.userId,
+      email: user.email,
+      role: user.role,
+      display_name: user.display_name,
+      capabilities: capabilitiesForRole(user.role),
+    },
+  });
 });
 
 const BootstrapInput = z.object({
@@ -195,7 +217,15 @@ app.post("/api/auth/bootstrap", async (c) => {
   const secure = isSecureRequest(c.req);
   const { token, expiresAt } = await createSession(user!.id);
   c.header("Set-Cookie", setSessionCookie(token, expiresAt, secure));
-  return c.json({ user }, 201);
+  return c.json({
+    user: {
+      id: user!.id,
+      email: user!.email,
+      role: user!.role,
+      display_name: user!.display_name,
+      capabilities: capabilitiesForRole(user!.role),
+    },
+  }, 201);
 });
 
 app.get("/api/auth/status", async (c) => {
@@ -840,6 +870,15 @@ app.put("/api/rent-charges/:id", async (c) => {
     "SELECT amount, due_date, status FROM rent_charges WHERE id = ?", [id],
   );
   const d = parsed.data;
+  // Gate rows 21–22 (D1): sensitive charge edits (patch containing `amount`,
+  // `due_date`, or `status` — incl. any status transition / waive) are
+  // Owner/Admin only. Notes-only patches are routine (row 20) and stay open to
+  // all three roles. Matches the settings gate: only enforced when auth is on.
+  const chargeEditor = c.get("user");
+  const authEnabled = await isAuthEnabled();
+  if (authEnabled && !can(chargeEditor, CAP.rentChargesUpdateSensitive) && isSensitiveChargePatch(d)) {
+    return c.json(err(ErrorCode.forbidden, "Forbidden"), 403);
+  }
   const { sets, params } = buildUpdate(d);
   if (!sets.length) return c.json(err(ErrorCode.no_fields, "No fields"), 400);
   params.push(id);
@@ -945,6 +984,12 @@ app.post("/api/payments", async (c) => {
 app.delete("/api/payments/:id", async (c) => {
   const id = intParam(c.req.param("id"));
   if (!id) return c.json(err(ErrorCode.invalid_id, "Invalid ID"), 400);
+  const user = c.get("user");
+  const authEnabled = await isAuthEnabled();
+  // Gate row 26 (D1): payment deletion is Owner/Admin only — Manager DENY.
+  if (authEnabled && !can(user, CAP.paymentsDelete)) {
+    return c.json(err(ErrorCode.forbidden, "Forbidden"), 403);
+  }
   const row = await get<{ charge_id: number; amount: number; method: string }>("SELECT charge_id, amount, method FROM payments WHERE id = ?", [id]);
   if (!row) return c.json(err(ErrorCode.not_found, "Not found"), 404);
   await run("DELETE FROM payments WHERE id = ?", [id]);
@@ -1316,8 +1361,9 @@ app.get("/api/settings", async (c) => {
 app.put("/api/settings", async (c) => {
   const user = c.get("user");
   const authEnabled = await isAuthEnabled();
-  // When auth is enabled, only admin/owner can update settings
-  if (authEnabled && (!user || !hasMinimumRole(user.role, "admin"))) {
+  // Gate row 41: settings write is Owner/Admin. The AUTH_ENABLED=false posture
+  // (dev/test rollback — known gap 6, §15) keeps its current flat behavior.
+  if (authEnabled && !can(user, CAP.settingsUpdate)) {
     return c.json(err(ErrorCode.forbidden, "Forbidden"), 403);
   }
   let body: unknown;
@@ -1354,7 +1400,8 @@ app.put("/api/settings", async (c) => {
 // drifted row is fixed on demand by an admin.
 app.post("/api/admin/reconcile-occupancy", async (c) => {
   const user = c.get("user");
-  if (!user || !hasMinimumRole(user.role, "admin")) {
+  // Gate row 42: reconcile MANAGE is Owner/Admin.
+  if (!can(user, CAP.reconcileManage)) {
     return c.json(err(ErrorCode.forbidden, "Forbidden"), 403);
   }
   const result = await reconcileAllUnits();
@@ -1365,7 +1412,8 @@ app.post("/api/admin/reconcile-occupancy", async (c) => {
 
 app.get("/api/users", async (c) => {
   const user = c.get("user");
-  if (!user || !hasMinimumRole(user.role, "admin")) {
+  // Gate row 43: user roster READ is Owner/Admin.
+  if (!can(user, CAP.usersRead)) {
     return c.json(err(ErrorCode.forbidden, "Forbidden"), 403);
   }
   const rows = await query<{ id: number; email: string; display_name: string; role: string; created_at: string }>(
@@ -1383,14 +1431,16 @@ const CreateUserInput = z.object({
 
 app.post("/api/users", async (c) => {
   const user = c.get("user");
-  if (!user || !hasMinimumRole(user.role, "admin")) {
+  // Gate row 44: user CREATE is Owner/Admin; Owner may create any account,
+  // Admin only manager/admin (checked below).
+  if (!can(user, CAP.usersCreate)) {
     return c.json(err(ErrorCode.forbidden, "Forbidden"), 403);
   }
   const parsed = await parseJson(c, CreateUserInput);
   if (!parsed.ok) return c.json(err(parsed.code, parsed.error), 400);
   const { email, password, display_name, role } = parsed.data;
-  // Only owners can create other owners
-  if (role === "owner" && user.role !== "owner") {
+  // Only owners can create other owners (gate row 44 CONDITIONAL)
+  if (!mayCreateUser(user, role)) {
     return c.json(err(ErrorCode.forbidden, "Only owners can create owner accounts"), 403);
   }
   const existing = await get<{ id: number }>("SELECT id FROM users WHERE email = ?", [email.toLowerCase().trim()]);
@@ -1404,6 +1454,12 @@ app.post("/api/users", async (c) => {
     "SELECT id, email, display_name, role, created_at FROM users WHERE id = ?",
     [result.lastInsertRowid],
   );
+  // Gate row 44 REQUIRED audit (the password hash is never logged).
+  await writeAudit(c, "create", "user", Number(result.lastInsertRowid), null, {
+    email: created!.email,
+    display_name: created!.display_name,
+    role: created!.role,
+  });
   return c.json({ user: created }, 201);
 });
 
@@ -1415,22 +1471,24 @@ const UpdateUserInput = z.object({
 
 app.put("/api/users/:id", async (c) => {
   const caller = c.get("user");
-  if (!caller || !hasMinimumRole(caller.role, "admin")) {
+  // Gate rows 45–46: user UPDATE/ASSIGN is Owner/Admin with Owner-exclusive
+  // limits on owner accounts and the owner role (checked below).
+  if (!can(caller, CAP.usersUpdate)) {
     return c.json(err(ErrorCode.forbidden, "Forbidden"), 403);
   }
   const id = intParam(c.req.param("id"));
   if (!id) return c.json(err(ErrorCode.invalid_id, "Invalid ID"), 400);
-  const target = await get<{ id: number; role: string }>("SELECT id, role FROM users WHERE id = ?", [id]);
+  const target = await get<{ id: number; role: string; display_name: string }>("SELECT id, role, display_name FROM users WHERE id = ?", [id]);
   if (!target) return c.json(err(ErrorCode.not_found, "Not found"), 404);
-  // Non-owners cannot modify owner accounts
-  if (target.role === "owner" && caller.role !== "owner") {
+  // Gate row 45 CONDITIONAL — non-owners cannot modify owner accounts
+  if (!mayModifyOwnerAccount(caller, target.role)) {
     return c.json(err(ErrorCode.cannot_modify_owner, "Cannot modify owner account"), 403);
   }
   const parsed = await parseJson(c, UpdateUserInput);
   if (!parsed.ok) return c.json(err(parsed.code, parsed.error), 400);
   const { display_name, role, password } = parsed.data;
-  // Only owners can assign owner role
-  if (role === "owner" && caller.role !== "owner") {
+  // Gate row 46 CONDITIONAL — only owners can assign the owner role
+  if (!mayAssignOwnerRole(caller, role)) {
     return c.json(err(ErrorCode.forbidden, "Only owners can assign owner role"), 403);
   }
   const updates: string[] = [];
@@ -1445,17 +1503,30 @@ app.put("/api/users/:id", async (c) => {
   const updated = await get<{ id: number; email: string; display_name: string; role: string; created_at: string }>(
     "SELECT id, email, display_name, role, created_at FROM users WHERE id = ?", [id],
   );
+  // Gate rows 45–46 REQUIRED audit (the password hash is never logged).
+  const changes: Record<string, unknown> = {};
+  if (display_name !== undefined) changes.display_name = display_name.trim();
+  if (role !== undefined) changes.role = role;
+  if (password !== undefined) changes.password_changed = true;
+  await writeAudit(c, "update", "user", id, {
+    display_name: target.display_name,
+    role: target.role,
+  }, Object.keys(changes).length ? changes : null);
   return c.json({ user: updated });
 });
 
 app.delete("/api/users/:id", async (c) => {
   const caller = c.get("user");
-  if (!caller || caller.role !== "owner") {
+  // Gate row 47: user DELETE is Owner-only (INTENTIONAL — register §13).
+  if (!can(caller, CAP.usersDelete)) {
     return c.json(err(ErrorCode.forbidden, "Only owners can delete users"), 403);
   }
   const id = intParam(c.req.param("id"));
   if (!id) return c.json(err(ErrorCode.invalid_id, "Invalid ID"), 400);
-  if (id === caller.userId) return c.json(err(ErrorCode.cannot_delete_self, "Cannot delete your own account"), 409);
+  // CRITICAL INVARIANT (register §13 / gate): no user — including the Owner —
+  // may delete their own account. Owner delete authority covers other users.
+  // (The owner gate above already rejects null callers; the guard stays robust.)
+  if (caller && id === caller.userId) return c.json(err(ErrorCode.cannot_delete_self, "Cannot delete your own account"), 409);
   const target = await get<{ id: number; email: string; role: string }>("SELECT id, email, role FROM users WHERE id = ?", [id]);
   if (!target) return c.json(err(ErrorCode.not_found, "Not found"), 404);
   await deleteUserSessions(id);
@@ -1469,7 +1540,9 @@ app.delete("/api/users/:id", async (c) => {
 
 app.get("/api/audit", async (c) => {
   const user = c.get("user");
-  if (!user || !hasMinimumRole(user.role, "admin")) {
+  // Gate row 48: auditLog READ is Owner/Admin (Manager own-actions variant
+  // NOT adopted — register §13 item 7).
+  if (!can(user, CAP.auditRead)) {
     return c.json(err(ErrorCode.forbidden, "Forbidden"), 403);
   }
   const entity = c.req.query("entity");
@@ -1541,6 +1614,13 @@ function csvResponse(c: Context, filename: string, headers: string[], rows: Reco
 }
 
 app.get("/api/export/rent-ledger", async (c) => {
+  const user = c.get("user");
+  const authEnabled = await isAuthEnabled();
+  // Gate row 49 (D2): the rent ledger is a financial CSV — Owner/Admin only.
+  // Operational exports (tenants/properties, rows 50–51) stay open to all.
+  if (authEnabled && !can(user, CAP.exportRentLedger)) {
+    return c.json(err(ErrorCode.forbidden, "Forbidden"), 403);
+  }
   const period = c.req.query("period");
   if (!period) return c.json(err(ErrorCode.period_required, "period (YYYY-MM) required"), 400);
   if (!/^\d{4}-\d{2}$/.test(period)) return c.json(err(ErrorCode.validation, "period must be YYYY-MM"), 400);
@@ -1563,6 +1643,8 @@ app.get("/api/export/rent-ledger", async (c) => {
     status: r.status,
   }));
   const filename = c.req.query("filename") || `rent-ledger-${period}.csv`;
+  // Gate row 49 REQUIRED audit: financial exports are recorded (row count only).
+  await writeAudit(c, "export", "rent_ledger", null, null, { period, rows: data.length });
   return csvResponse(c, filename, headers, data);
 });
 

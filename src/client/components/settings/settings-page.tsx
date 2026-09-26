@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useState } from "react";
 import { Pencil, Plus, Trash2, Wrench } from "lucide-react";
-import { useApp } from "@/context";
+import { useApp, hasCap } from "@/context";
+import { CAPS } from "@/permissions";
 import { cn, colorClasses } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Bidi } from "@/components/ui/bidi";
@@ -41,7 +42,8 @@ const SWATCH_BG: Record<string, string> = {
 
 const VENDOR_CATEGORIES: VendorCategory[] = ["plumber", "electrician", "hvac", "handyman", "cleaning", "landscaping", "general"];
 
-export function SettingsPage({ currentUserRole }: { currentUserRole?: string }) {
+export function SettingsPage() {
+  const { capabilities } = useApp();
   return (
     <PageShell
       title={tf("settings.title")}
@@ -52,10 +54,10 @@ export function SettingsPage({ currentUserRole }: { currentUserRole?: string }) 
           <TabsList>
             <TabsTrigger value="vendors">{tf("vendors.tab_vendors")}</TabsTrigger>
             <TabsTrigger value="policy">{tf("vendors.tab_policy")}</TabsTrigger>
-            {(currentUserRole === "owner" || currentUserRole === "admin") && (
+            {hasCap(capabilities, CAPS.usersRead) && (
               <TabsTrigger value="users">{t("auth.users")}</TabsTrigger>
             )}
-            {(currentUserRole === "owner" || currentUserRole === "admin") && (
+            {hasCap(capabilities, CAPS.auditRead) && (
               <TabsTrigger value="audit">{t("audit.tab")}</TabsTrigger>
             )}
           </TabsList>
@@ -67,7 +69,7 @@ export function SettingsPage({ currentUserRole }: { currentUserRole?: string }) 
             <PolicyTab />
           </TabsContent>
           <TabsContent value="users" className="mt-4">
-            <UsersTab currentUserRole={currentUserRole ?? "manager"} />
+            <UsersTab capabilities={capabilities} />
           </TabsContent>
           <TabsContent value="audit" className="mt-4">
             <AuditTab />

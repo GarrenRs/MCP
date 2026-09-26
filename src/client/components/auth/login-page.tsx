@@ -11,6 +11,8 @@ interface SessionUser {
   email: string;
   role: string;
   display_name: string;
+  /** Read-only capability list from the server (presentation only). */
+  capabilities?: string[];
 }
 
 export function LoginPage({ onLogin }: { onLogin: (user: SessionUser) => void }) {
