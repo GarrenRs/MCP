@@ -5,7 +5,8 @@
 `Docs/execution/governance/commercial-architecture-gate-2026-09-26.md`, so that the ORKESTRIX
 product owner can answer them with full evidence and stated consequences.
 **This register does not make, infer, or silently resolve any product-owner decision.** Every
-decision is left explicitly OPEN until the product owner answers it.
+decision was left explicitly OPEN until the product owner answered it — the owner's recorded
+answers (2026-09-26) populate §5–§11 as `DECIDED`; this document only records them.
 
 Evidence discipline (same tags as the Commercial Architecture Gate and Role Policy Gate):
 `[VERIFIED]` = observed directly in the repo or in fetched upstream evidence;
@@ -29,28 +30,34 @@ answers. For each decision it records, in one place:
 4. the available options (documented alternatives — **not selected here**);
 5. the architectural impact of the choice;
 6. the downstream layers/phases that depend on the answer;
-7. an explicit **Product Owner Decision** field, left blank for the owner;
-8. a **Final Rule** field, left blank until decided;
-9. a status, restricted to `OPEN` / `DECIDED` / `BLOCKED` — all seven are `OPEN`.
+7. an explicit **Product Owner Decision** field, recorded by the owner;
+8. a **Final Rule** field, recorded when decided;
+9. a status, restricted to `OPEN` / `DECIDED` / `BLOCKED` — all seven are now `DECIDED`
+   (recorded 2026-09-26).
 
-This document is the single point of record: once the owner answers, the register is updated to
-`DECIDED` with the `Final Rule` populated, and the Commercial Architecture Gate status can be
-re-assessed (§14). Until then, no decision is treated as made, and the current flat behaviors must
-**not** be read as confirmed commercial policy (Role Policy Gate §13).
+This document is the single point of record. On 2026-09-26 the product owner answered all seven
+decisions: each entry is updated to `DECIDED` with its `Final Rule` populated (§5–§11), which
+satisfies the conditions for closing the Commercial Architecture Gate (§14) and is executed in
+`commercial-architecture-closure-2026-09-26.md`. Until those answers existed, no decision was
+treated as made, and the current flat behaviors were **not** confirmed commercial policy (Role
+Policy Gate §13); they remain unchanged as runtime state — no enforcement is implemented by any
+answer.
 
 ---
 
 ## 2. Baseline
 
-- HEAD: `3671716` — "docs: define commercial architecture gate" (Commercial Architecture Gate,
-  status NOT READY). [VERIFIED — git log]
+- HEAD at register creation: `a5f98d3` — "docs: create product owner decision register". This
+  follow-up update records the owner's D1–D7 answers; chain `a5f98d3` → `3671716` (Commercial
+  Architecture Gate) → `49832fd` (Role Policy Gate). [VERIFIED — git log]
 - Prior closed workstreams: Core/Profile Separation; Disposable Commercial Observation Dataset;
-  Role Mapping; Role Policy Gate (`49832fd`, status READY WITH POLICY DECISIONS).
+  Role Mapping; Role Policy Gate (`49832fd`, READY WITH POLICY DECISIONS — answers now recorded
+  here); Commercial Architecture Gate (`3671716`, NOT READY — closed by the closure document).
 - Working tree = inherited exceptions only (`Docs.zip`, `Docs/Docs.zip`, `Docs/execution/P5–P8/`,
   tc/tc3/vt/vt3.txt, modified ui-finalization docs, `tests/audit.test.ts`) — untouched by this
-  register. [VERIFIED — git status]
-- Nothing in this register changes source, schema, migrations, auth, permissions, UI, deployment,
-  installer, license, update, or backup behavior.
+  register or its closure. [VERIFIED — git status]
+- Nothing in this register (or its closure) changes source, schema, migrations, auth,
+  permissions, UI, deployment, installer, license, update, or backup behavior.
 
 ---
 
@@ -81,13 +88,14 @@ decision.
 
 | Status | Meaning | Guidance |
 |---|---|---|
-| `OPEN` | The decision is not yet answered; the Product Owner Decision and Final Rule fields are blank | Default for all seven; the register does not leave this state for itself |
+| `OPEN` | The decision is not yet answered; the Product Owner Decision and Final Rule fields are blank | Default when not yet answered; no longer the state of D1–D7 (all are now `DECIDED`) |
 | `DECIDED` | A product owner answer is recorded; Final Rule is populated and dated | Set only by an explicit owner answer — not by inference |
 | `BLOCKED` | The decision cannot be progressed because evidence or a prerequisite is missing | Not used today: the register's evidence is sufficient to *answer* each decision; ownership of the answer is what is missing |
 
 Rules: a decision stays `OPEN` until the product owner explicitly decides. No option in this
-register is a recommendation. If a decision becomes `BLOCKED`, the blocker and its unblocking
-condition are recorded in §13.
+register was a recommendation. If a decision becomes `BLOCKED`, the blocker and its unblocking
+condition are recorded in §13. As of 2026-09-26 all seven decisions are `DECIDED` (answers and
+Final Rules in §5–§11); `BLOCKED` is unused.
 
 ---
 
@@ -131,9 +139,19 @@ condition are recorded in §13.
   authorization semantics if recorded wrong; drives UI gating; does not touch the role hierarchy.
 - **Downstream Dependencies**: Permission Model (§12.1-1 precondition D1); Release acceptance;
   auth test matrix (`tests/auth.test.ts`).
-- **Product Owner Decision**: *(blank — to be answered)*
-- **Final Rule**: *(blank — recorded when decided)*
-- **Status**: `OPEN`
+- **Product Owner Decision** (recorded 2026-09-26): Manager may generate/create rent charges and
+  may record payments. Manager may NOT waive charges, may NOT perform sensitive charge edits, and
+  may NOT delete payments. Admin may perform the sensitive financial operations (waive charges,
+  sensitive charge edits, payment deletion). Owner retains final Principal authority. Exact
+  permission enforcement belongs to the next Permission Model phase.
+- **Final Rule** (dated 2026-09-26): Financial-authority envelope for the Permission Model input scope set (no
+  enforcement now): Manager — generate/create charges ✓, record payments ✓, waive charges ✗,
+  sensitive charge edits ✗, delete payments ✗; Admin — performs the sensitive financial
+  operations (waive, sensitive charge edits, delete payments) in addition to the managerial
+  envelope, per the verified cumulative hierarchy; Owner — retains the full envelope plus final
+  Principal authority. The routine-vs-sensitive charge-edit boundary is defined by the Permission
+  Model phase inside this envelope. Runtime behavior is unchanged until then.
+- **Status**: `DECIDED`
 
 ---
 
@@ -166,9 +184,16 @@ condition are recorded in §13.
   exfiltration surface — gate D2 impact); affects Permission Model and Release acceptance; does not
   affect export mechanics (P11 implemented) beyond the read-side `markOverdue()` behavior.
 - **Downstream Dependencies**: Permission Model; Release acceptance.
-- **Product Owner Decision**: *(blank — to be answered)*
-- **Final Rule**: *(blank — recorded when decided)*
-- **Status**: `OPEN`
+- **Product Owner Decision** (recorded 2026-09-26): Operational CSV exports remain available to
+  operational roles according to current operational scope. Financial exports, including the rent
+  ledger, are restricted to Admin and Owner. No financial-export implementation is to be
+  performed now.
+- **Final Rule** (dated 2026-09-26): Export scope for the Permission Model input scope set (no implementation now):
+  operational CSVs (tenants/properties) — available to operational roles per current operational
+  scope; financial CSVs including the rent ledger — Admin and Owner only. The current all-role
+  export behavior stands until the Permission Model phase enforces the approved scope; no export
+  code changes now.
+- **Status**: `DECIDED`
 
 ---
 
@@ -205,9 +230,17 @@ condition are recorded in §13.
   bootstrap-first-owner semantics. Ownership of the answer also decides whether an owner "records
   payments, deletes leases, exports the ledger, or stays oversight-oriented" (Role Policy §3).
 - **Downstream Dependencies**: Permission Model; LAN/Client Model (D7).
-- **Product Owner Decision**: *(blank — to be answered)*
-- **Final Rule**: *(blank — recorded when decided)*
-- **Status**: `OPEN`
+- **Product Owner Decision** (recorded 2026-09-26): Owner is a Hybrid role — operational
+  authority plus Principal authority. Owner remains capable of normal operational work and
+  additionally holds the highest governance/administrative authority. This does not require a new
+  role.
+- **Final Rule** (dated 2026-09-26): Owner identity within the existing three-role model (no new role): full
+  operational capability (normal operational work, including the D1 financial envelope as
+  recorded) combined with the highest governance/administrative authority (user-roster
+  sovereignty and owner-only controls remain; final Principal authority per D1). The Permission
+  Model phase records this as a role-posture statement on the existing Owner role — additive
+  scope gates only; no new roles, no hierarchy change.
+- **Status**: `DECIDED`
 
 ---
 
@@ -244,9 +277,16 @@ condition are recorded in §13.
   locks). It must **not** couple to the permission model (layer D) — entitlement and authorization
   stay separate (Commercial Architecture Gate §7 boundary rule).
 - **Downstream Dependencies**: License → Installer → Release (pass-through of the dependency map).
-- **Product Owner Decision**: *(blank — to be answered)*
-- **Final Rule**: *(blank — recorded when decided)*
-- **Status**: `OPEN`
+- **Product Owner Decision** (recorded 2026-09-26): V1 commercial license = one installation.
+  The license is associated with the licensed server/installation. Client/browser count is not
+  separately licensed in V1. Modules and agents may become future entitlement dimensions. Do not
+  implement licensing now.
+- **Final Rule** (dated 2026-09-26): V1 entitlement object = the installation (per-installation license), associated
+  with the licensed server/installation; browser-client count is NOT a licensed dimension in V1.
+  Modules and agents are recorded as potential future entitlement dimensions (out of V1 scope).
+  This rule is the input contract for the future License/Installer/Release gates (§12.1-5/-6/-7);
+  no license implementation now.
+- **Status**: `DECIDED`
 
 ---
 
@@ -284,9 +324,18 @@ condition are recorded in §13.
   Installer (I); Release acceptance includes the "secure on-demand update channel" §I DoD item;
   must respect the schema_migrations ledger so updates never free-run schema.
 - **Downstream Dependencies**: Update → Installer → Release; rollback depends on Backup (D6).
-- **Product Owner Decision**: *(blank — to be answered)*
-- **Final Rule**: *(blank — recorded when decided)*
-- **Status**: `OPEN`
+- **Product Owner Decision** (recorded 2026-09-26): Future update model = controlled outbound
+  update. No inbound public application port. The future update flow must include
+  authenticated/authorized retrieval, package integrity/authenticity verification, backup before
+  migration, versioned migration handling, and rollback capability. Do not implement update
+  infrastructure now.
+- **Final Rule** (dated 2026-09-26): Update posture for the Update/Installer/Release gates (§12.1-6/-7): updates are
+  retrieved outbound under control (the instance reaches out; no inbound public application port
+  is opened). Required future flow elements: authenticated/authorized retrieval; package
+  integrity/authenticity verification; backup before migration (links to D6); versioned migration
+  handling on the schema_migrations ledger; rollback capability. No update infrastructure is
+  implemented now.
+- **Status**: `DECIDED`
 
 ---
 
@@ -321,9 +370,15 @@ condition are recorded in §13.
   criterion (§I DoD); couples to D5 (pre-update snapshotting / rollback) and to the Installer
   (where backups live and how restores run).
 - **Downstream Dependencies**: Backup → Release; informs Installer and Update gates.
-- **Product Owner Decision**: *(blank — to be answered)*
-- **Final Rule**: *(blank — recorded when decided)*
-- **Status**: `OPEN`
+- **Product Owner Decision** (recorded 2026-09-26): Hybrid responsibility. ORKESTRIX provides the
+  backup/restore mechanism. The customer remains responsible for retention policy and for
+  maintaining an external/off-server copy. Do not implement backup now.
+- **Final Rule** (dated 2026-09-26): Division of backup duty for the Backup/Release gates (§12.1-4/-7): ORKESTRIX —
+  provides the backup/restore mechanism (future Backup phase); Customer — owns the retention
+  policy and maintains an external/off-server copy. Scope, retention and restore-verification
+  detail belong to the Backup phase under this division of duty; pre-update backup is required by
+  D5. No backup implementation now.
+- **Status**: `DECIDED`
 
 ---
 
@@ -363,9 +418,17 @@ condition are recorded in §13.
   the session model and the Release QA environment.
 - **Downstream Dependencies**: LAN / Client Model; pairs with Permission Model (D3) and License
   (D4).
-- **Product Owner Decision**: *(blank — to be answered)*
-- **Final Rule**: *(blank — recorded when decided)*
-- **Status**: `OPEN`
+- **Product Owner Decision** (recorded 2026-09-26): V1 deployment model remains one local
+  server/installation with browser clients over the local network. No artificial commercial
+  numeric client limit is defined for V1. A future supported concurrency limit must be based on
+  real load/concurrency testing. Do not invent a capacity number. Do not implement LAN support
+  now.
+- **Final Rule** (dated 2026-09-26): V1 layout = one local server/installation; browser clients over the local
+  network; no artificial commercial numeric client limit in V1. Any future supported concurrency
+  limit must be derived from real load/concurrency testing — no capacity number is invented by
+  this decision or by any earlier artifact. LAN support is deferred and never claimed implemented;
+  no LAN implementation now.
+- **Status**: `DECIDED`
 
 ---
 
@@ -393,6 +456,18 @@ Interactions that must be reconciled when the owner answers (identifying them is
   all seven are recorded as DECIDED with Final Rules; the implementation sequence then starts with
   Permission Model (Commercial Architecture Gate §12.1-1) and proceeds through the gated order.
 
+Reconciliation status (2026-09-26): the recorded answers are mutually consistent — D1×D3: hybrid
+Owner keeps full operational reach plus final Principal authority, so no owner-only financial
+subset is forced; D2×D1: the financial-export restriction (Admin/Owner) tracks the admin+/owner
+financial-envelope boundary; D3×D7: hybrid Owner is a working role over the local network like
+other roles (principal posture is an authority statement, not a device statement); D4×D7: V1 has
+per-installation licensing and no numeric client limit, so no seat-number coupling is active;
+D5×D6: backup-before-migration is required by D5 and consistent with the hybrid D6 division of
+duty; D4×D5×D6→Release: license object, update channel and backup/restore remain future
+Release-gate inputs (never implemented here); D1–D3→Permission Model: the permission scope set is
+now defined and Permission Model is the next gate; D1–D7→Closure: all seven are DECIDED and the
+Commercial Architecture Gate is closed in the closure document.
+
 ### Dependency map (compact)
 
 ```
@@ -412,9 +487,10 @@ D1–D7 → Commercial Architecture Closure → Implementation sequence
 
 ## 13. Product Owner Decisions Pending
 
-All seven register decisions are `OPEN`. Additionally, the Role Policy Gate §11 questions that map
-to D1–D3 are carried forward here (they are the same answers, seen from the permission side) and
-jointly cover:
+As of 2026-09-26 all seven register decisions are `DECIDED` (product owner answers in §5–§11;
+Final Rules populated). The Role Policy Gate §11 questions that map to D1–D3 were carried forward
+here (they were the same answers, seen from the permission side) and are now covered by the
+recorded decisions:
 
 1. Payment recording authority (→ D1) 2. Charge edit/create/generate/waive authority (→ D1)
 3. Operational delete authority (Model C; → D1/D2) 4. Rent-ledger CSV export (→ D2)
@@ -423,6 +499,10 @@ jointly cover:
    (→ D3, non-blocking refinement) 9. User-role assignment scope (stands per current behavior —
    confirm) 10. Financial Separation of Duties (→ D1) 11. V1-acceptable gaps list (→ Permission
    Model design input) 12. Pre-release closure list (→ Release gate).
+Items 9, 11 and 12 remain Permission Model / Release gate inputs rather than blockers: user-role
+assignment scope (9) stands per current behavior and is confirmed during Permission Model design;
+the V1-acceptable-gaps list (11) and the pre-release closure list (12) belong to the Permission
+Model and Release gates respectively.
 
 Non-blocking items (N1–N5) from the gate remain open but do not block design: installer target
 platform list (N1), Arabic/RTL pacing (N2), OBS dataset policy (N3), visual polish (N4), UI copy
@@ -433,8 +513,9 @@ architecture.
 
 ## 14. Conditions for Commercial Architecture Closure
 
-The Commercial Architecture Gate (§12) will flip from **NOT READY** when **all** of the following
-hold:
+The Commercial Architecture Gate (§12) flips from **NOT READY** when **all** of the following
+hold — every condition was satisfied on 2026-09-26 (statuses `DECIDED` with dated Final Rules in
+§5–§11):
 
 1. D1, D2, D3 answered and recorded (`DECIDED` + `Final Rule`) → then Permission Model design may
    begin (§12.1-1); answers must preserve Owner/Admin/Manager + `hasMinimumRole` semantics and
@@ -448,27 +529,38 @@ hold:
    (§12) and with the Role Policy Gate §11 answers where they overlap.
 7. The register status column for D1–D7 shows `DECIDED` with dated Final Rules.
 
-Until conditions 1–7 hold, the Commercial Architecture Gate **remains NOT READY**, and none of the
-gated phases (Permission Model, Distributed/Deployment Model, LAN/Client, Backup, License,
-Installer, Release) may begin. The current flat operational plane and the current single-machine
-runtime are **not** confirmed commercial policy.
+Conditions 1–7 now hold. The gate's transition is executed in
+`Docs/execution/governance/commercial-architecture-closure-2026-09-26.md` (Closure Status:
+`CLOSED`). Permission Model is the first gated phase to open (§12.1-1); the other gated phases
+(Deployment, LAN/Client, Backup, License, Installer, Update, Release) remain future work and must
+not be claimed as implemented. The current flat operational plane and the current single-machine
+runtime are **not** changed by these decisions — enforcement lands in the Permission Model phase.
+
+The closure document (`commercial-architecture-closure-2026-09-26.md`) §11 additionally maps
+every Commercial Architecture Gate §12.1 precondition (1–7) — including Deployment (2),
+LAN/Client (3), Installer N1 target-platform confirm (6), and Release (7, UI-finalization /
+clean-machine QA) — to its satisfaction status. Those non-decision preconditions are tracked in
+the closure, which remains the reference for them; this register records the D1–D7 decisions and
+their conditions only.
 
 ---
 
 ## 15. Next Gate
 
-When the product owner has answered D1–D7 (and the carried-forward Role Policy Gate §11 items
-they cover):
+The product owner answered D1–D7 on 2026-09-26 (§5–§11; the carried-forward Role Policy Gate §11
+items are covered by those same answers):
 
-1. **Re-assess the Commercial Architecture Gate**: update its §12 status from NOT READY to READY
-   WITH CONDITIONS (if conditions are limited to non-blockers) or READY (if all conditions are
-   met) — per the gate's own rule, never READY while material decisions remain open.
+1. **Close the Commercial Architecture Gate**: executed in
+   `commercial-architecture-closure-2026-09-26.md` (Closure Status: `CLOSED`) — the closure
+   expressly states V1 may proceed to Permission Model.
 2. **Begin Permission Model design** (gate §12.1-1) as the first downstream phase, using the
-   recorded D1–D3 + Role Policy §11 answers as its input scope set.
+   recorded D1–D3 answers (Final Rules §5–§7) as its input scope set — additive feature-scope
+   gates only; no new roles; no narrowing outside the recorded envelope.
 3. Proceed in the gated order: Deployment Model → LAN/Client → Backup → License → Installer →
-   Update → Release, each unlocked by its recorded decision (dependency map §12).
-4. Update this register at every answer: set status `DECIDED`, populate `Product Owner Decision`
-   and `Final Rule` with the decision and its date, and reconcile §12 cross-dependencies.
+   Update → Release, each unlocked by its recorded decision (dependency map §12); none of these
+   phases is open yet.
+4. The register statuses are now `DECIDED` with populated `Product Owner Decision`/`Final Rule`
+   fields (§5–§11) and §12 cross-dependencies reconciled.
 
 ---
 
@@ -477,6 +569,8 @@ they cover):
 - Commercial Architecture Gate — `Docs/execution/governance/commercial-architecture-gate-2026-09-26.md`
   (§7 layer boundaries, §10 decision matrix, §11 D1–D7 + N1–N5, §12 ready gate, §12.1 preconditions,
   §14 evidence) [VERIFIED].
+- Commercial Architecture Closure — `Docs/execution/governance/commercial-architecture-closure-2026-09-26.md`
+  (Closure Status: CLOSED; next gate: Permission Model) [VERIFIED — this delivery].
 - Role Policy Gate — `Docs/execution/governance/role-policy-gate-2026-09-26.md` (§2 action matrix,
   §3 TEMPORARY/REALIGNMENT classifications, §7 sensitive action split, §10 Models A/B/C + variant
   axes, §11 questions 1–12, §12 final matrix, §13 status) [VERIFIED].
@@ -503,10 +597,15 @@ they cover):
 
 ## Conclusion
 
-This register turns the Commercial Architecture Gate's seven blockers into answerable records.
-Every entry is `OPEN`; the `Product Owner Decision` and `Final Rule` fields are deliberately blank.
-No option in this document is selected, recommended, or implied as a decision. The current flat
-money/delete/export behavior, the current single-machine runtime, and the current install model
-remain exactly as they are today — evidence for the owner's answers, not answers themselves.
-Closure of the Commercial Architecture Gate is conditional on the owner recording D1–D7 as
-`DECIDED` (per §14), at which point Permission Model design is the first gated phase to open.
+The product owner answered all seven commercial blocker decisions on 2026-09-26. Every entry in
+this register is now `DECIDED` with a recorded `Product Owner Decision` and a populated
+`Final Rule` (§5–§11); no decision was made by inference — each records the owner's explicit
+answer. The register is **COMPLETE**: all seven commercial blockers are resolved, historical
+evidence and source distinctions are preserved, and the register satisfies every condition
+required to close the Commercial Architecture Gate (§14). The closure is executed in
+`Docs/execution/governance/commercial-architecture-closure-2026-09-26.md` (Closure Status:
+`CLOSED`), which expressly states V1 may proceed to Permission Model. Nothing in these decisions
+changes source, schema, migrations, auth, permissions, UI, deployment, installer, license,
+update, or backup behavior: the current flat money/delete/export behavior, the single-machine
+runtime, and the install model remain exactly as they are today. Permission Model is the next
+phase to open.
