@@ -424,6 +424,20 @@ describe("V1 permission model — server-side enforcement", () => {
       expect(allowed.body.settings.late_fee_amount).toBe("10");
     });
 
+    it("manager cannot change the system language via the settings API; owner/admin can and it persists", async () => {
+      const { owner, admin, manager } = await setupActors();
+      const denied = await request("/api/settings", "PUT", { locale: "ar" }, manager.cookie);
+      expect(denied.status).toBe(403);
+      const byOwner = await request("/api/settings", "PUT", { locale: "ar" }, owner.cookie);
+      expect(byOwner.status).toBe(200);
+      expect(byOwner.body.settings.locale).toBe("ar");
+      const reloaded = await request("/api/settings", "GET", undefined, admin.cookie);
+      expect(reloaded.body.settings.locale).toBe("ar");
+      const byAdmin = await request("/api/settings", "PUT", { locale: "fr-DZ" }, admin.cookie);
+      expect(byAdmin.status).toBe(200);
+      expect(byAdmin.body.settings.locale).toBe("fr-DZ");
+    });
+
     it("manager is denied reconcile; admin may reconcile", async () => {
       const { admin, manager } = await setupActors();
       const denied = await request("/api/admin/reconcile-occupancy", "POST", undefined, manager.cookie);

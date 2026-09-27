@@ -283,6 +283,10 @@ function VendorDialog({
 
 function PolicyTab() {
   const app = useApp();
+  // System language is an organization-level setting controlled by the highest
+  // operational authority only (gate row 41 — settings:update, Owner/Admin).
+  // Manager can neither see nor save it; it simply uses the configured locale.
+  const canManageSettings = hasCap(app.capabilities, CAPS.settingsUpdate);
   const [dueDay, setDueDay] = useState(String(app.settings.default_rent_due_day));
   const [lateFee, setLateFee] = useState(String(app.settings.late_fee_amount));
   const [grace, setGrace] = useState(String(app.settings.late_fee_grace_days));
@@ -311,7 +315,9 @@ function PolicyTab() {
         late_fee_amount: parseFloat(lateFee) || 0,
         late_fee_grace_days: Math.max(0, parseInt(grace, 10) || 0),
         currency: currency.trim().toUpperCase() || app.profile.defaults.settings.currency,
-        locale,
+        // Locale is Owner/Admin-only (settings:update); never include it in a
+        // manager-initiated save.
+        ...(canManageSettings ? { locale } : {}),
       });
     } catch (err) {
       app.setError((err as Error).message);
@@ -344,18 +350,22 @@ function PolicyTab() {
           <Input id="s-cur" value={currency} onChange={(e) => setCurrency(e.target.value)} placeholder={app.profile.defaults.settings.currency} />
         </div>
       </div>
-      <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3 md:grid-cols-4">
-        <div>
-          <Label htmlFor="s-locale">{t("settings.locale")}</Label>
-          <Select value={locale} onValueChange={setLocale}>
-            <SelectTrigger id="s-locale"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {localeOptions.map((id) => (
-                <SelectItem key={id} value={id}>{tf(localeOptionKey(id))}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+      <div className="mt-3">
+        {canManageSettings && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:grid-cols-4">
+            <div>
+              <Label htmlFor="s-locale">{t("settings.locale")}</Label>
+              <Select value={locale} onValueChange={setLocale}>
+                <SelectTrigger id="s-locale"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {localeOptions.map((id) => (
+                    <SelectItem key={id} value={id}>{tf(localeOptionKey(id))}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        )}
       </div>
       <div className="mt-4">
         <Button onClick={save} disabled={saving}>{tf("vendors.save")}</Button>
